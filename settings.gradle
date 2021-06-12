@@ -1,0 +1,2 @@
+rootProject.name = "Protectors of Astrax"
+include ':app'
