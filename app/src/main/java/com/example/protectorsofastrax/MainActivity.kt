@@ -28,5 +28,9 @@ class MainActivity : AppCompatActivity() {
             intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
+        main_profile_btn.setOnClickListener {
+            intent= Intent(this,ProfileActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
