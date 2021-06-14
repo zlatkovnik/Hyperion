@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ProfileActivity">
+
+    <androidx.constraintlayout.utils.widget.ImageFilterView
+        android:id="@+id/prof_avatar_img"
+        android:layout_width="138dp"
+        android:layout_height="121dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.139"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.083"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <Button
+        android:id="@+id/prof_chandge_picture_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/chandgePicture"
+        app:layout_constraintTop_toBottomOf="@+id/prof_avatar_img"
+        tools:layout_editor_absoluteX="27dp"/>
+
+
+    <ImageView
+        android:id="@+id/prof_sword_icon_img"
+        android:layout_width="52dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="60dp"
+        app:layout_constraintStart_toEndOf="@+id/prof_avatar_img"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/swords" />
+
+    <EditText
+        android:id="@+id/prof_battles_won_edt"
+        android:layout_width="66dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="60dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        app:layout_constraintStart_toEndOf="@+id/prof_sword_icon_img"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/prof_cards_in_collection_img"
+        android:layout_width="53dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintStart_toEndOf="@+id/prof_avatar_img"
+        app:layout_constraintTop_toBottomOf="@+id/prof_sword_icon_img"
+        app:srcCompat="@drawable/cards" />
+
+    <EditText
+        android:id="@+id/prof_cards_in_collection_edt"
+        android:layout_width="66dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="16dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text=""
+        app:layout_constraintStart_toEndOf="@+id/prof_cards_in_collection_img"
+        app:layout_constraintTop_toBottomOf="@+id/prof_battles_won_edt" />
+
+    <EditText
+        android:id="@+id/prof_username_edt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:ems="10"
+        android:text=""
+        android:inputType="textPersonName"
+        app:layout_constraintTop_toBottomOf="@+id/prof_chandge_picture_btn"
+        tools:layout_editor_absoluteX="16dp" />
+
+    <EditText
+        android:id="@+id/prof_email_edt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:ems="10"
+        android:text=""
+        android:inputType="textPersonName"
+        app:layout_constraintTop_toBottomOf="@+id/prof_username_edt"
+        tools:layout_editor_absoluteX="16dp" />
+
+    <TextView
+        android:id="@+id/Acolides"
+        android:layout_width="179dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="36dp"
+        android:ems="10"
+        android:text="@string/acolides"
+        android:textSize="30sp"
+        app:layout_constraintTop_toBottomOf="@+id/prof_email_edt"
+        tools:layout_editor_absoluteX="16dp"
+        tools:ignore="MissingConstraints" />
+
+    <ProgressBar
+        android:id="@+id/prof_experience_prB"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="114dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toEndOf="@+id/prof_chandge_picture_btn"
+        app:layout_constraintTop_toBottomOf="@+id/prof_level_txtV" />
+
+    <TextView
+        android:id="@+id/prof_level_txtV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/prof_chandge_picture_btn"
+        tools:layout_editor_absoluteY="192dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>
