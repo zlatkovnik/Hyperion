@@ -2,15 +2,22 @@ package com.example.protectorsofastrax
 
 import android.app.Dialog
 import android.content.Intent
+import android.nfc.Tag
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import com.example.protectorsofastrax.data.User
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_edit.*
 import kotlinx.android.synthetic.main.activity_profile.*
+import kotlinx.android.synthetic.main.activity_register.*
+
 
 class EditActivity : AppCompatActivity() {
 
@@ -29,19 +36,51 @@ class EditActivity : AppCompatActivity() {
                 edit_name_edt.setText(documentSnapshot.getString("name"))
                 edit_surname_edt.setText(documentSnapshot.getString("surname"))
             }
+
+
             edit_save_btn.setOnClickListener {
                 val intent = Intent()
-
-                intent.putExtra("username", edit_username_edt.text.toString())
-                intent.putExtra("email", edit_email_edt.text.toString())
-                intent.putExtra("phone", edit_phone_edt.text.toString())
-                intent.putExtra("name", edit_name_edt.text.toString())
-                intent.putExtra("surname", edit_surname_edt.text.toString())
+                updateProfileInfo()
+                intent.putExtra("username",edit_username_edt.text.toString())
+                intent.putExtra("email",edit_email_edt.text.toString())
+                setResult(1000,intent)
+                finish()
 
 
             }
+            edit_cancel_btn.setOnClickListener {
+                finish()
+            }
         }
+//        edit_save_btn.setOnClickListener {
+//            val profileUpdates= userProfileChangeRequest {
+////                val email: String = edit_email_edt.text.toString().trim { it -> it <= ' ' }
+////                val username: String = edit_username_edt.text.toString().trim { it -> it <= ' ' }
+//////                val password: String = edit_password_edt.text.toString().trim { it -> it <= ' ' }
+////                val name = edit_name_edt.text.toString()
+////                val surname = edit_surname_edt.text.toString()
+////                val phone = edit_phone_edt.text.toString();
+//
+//            }
+//            user!!.updateProfile(profileUpdates)
+//                .addOnCompleteListener{
+//                        task->
+//                    if(task.isSuccessful)
+//                    {
+//                        Log.d("EditActivity:","User profile updated")
+//                        Toast.makeText(this, "Successful update", Toast.LENGTH_SHORT)
+//                            .show();
+//                        finish()
+//                    }
+//                }
+//        }
 
 
+
+
+    }
+    private fun updateProfileInfo(){
+        var obj= User(user.uid,edit_email_edt.text.toString(),edit_username_edt.text.toString(),edit_name_edt.text.toString(),edit_surname_edt.text.toString(),edit_phone_edt.text.toString())
+        FirebaseFirestore.getInstance().collection("users").document(user.uid).set(obj)
     }
 }

@@ -40,8 +40,8 @@ class ProfileActivity : AppCompatActivity() {
                 }
             val docRef=FirebaseFirestore.getInstance().collection("users").document(user.uid)
             docRef.get().addOnSuccessListener { documentSnapshot ->
-                prof_username_edt.setText(documentSnapshot.getString("username"))
-                prof_email_edt.setText(documentSnapshot.getString("email"))
+                prof_username_edt.text = documentSnapshot.getString("username")
+                prof_email_edt.text = documentSnapshot.getString("email")
                 prof_battles_won_edt.setText(documentSnapshot.getString("battlesWon"))
                 prof_cards_in_collection_edt.setText(documentSnapshot.getString("cardsInCollection"))
 
@@ -49,7 +49,9 @@ class ProfileActivity : AppCompatActivity() {
             }
           prof_edit_btn.setOnClickListener {
                 intent= Intent(this,EditActivity::class.java)
-                startActivity(intent)
+                 intent.putExtra("username",prof_username_edt.text.toString())
+                intent.putExtra("email",prof_email_edt.text.toString())
+                startActivityForResult(intent,1000)
             }
         }
     prof_chandge_picture_btn.setOnClickListener {
@@ -81,6 +83,11 @@ class ProfileActivity : AppCompatActivity() {
 
 
             }
+        }
+        if(resultCode==1000)
+        {
+            prof_username_edt.setText(data?.getStringExtra("username").toString())
+            prof_email_edt.setText(data?.getStringExtra("email").toString())
         }
     }
 }
