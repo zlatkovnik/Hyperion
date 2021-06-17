@@ -24,22 +24,27 @@ class ProfileActivity : AppCompatActivity() {
     var avatarUri: Uri? = null
 
     private lateinit var user: FirebaseUser
-//    var storage=Firebase
+
+    //    var storage=Firebase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        user=Firebase.auth.currentUser as FirebaseUser
-        if(user !=null)
-        {
+        user = Firebase.auth.currentUser as FirebaseUser
+        if (user != null) {
             FirebaseStorage.getInstance().reference
-                .child(AVATARS_CHILD+Firebase.auth.uid)
+                .child(AVATARS_CHILD + Firebase.auth.uid)
                 .downloadUrl
                 .addOnSuccessListener {
                     Glide.with(this).load(it.toString()).into(prof_avatar_img)
                 }
-            val docRef=FirebaseFirestore.getInstance().collection("users").document(user.uid)
+            val docRef = FirebaseFirestore.getInstance().collection("users").document(user.uid)
             docRef.get().addOnSuccessListener { documentSnapshot ->
+                var experience: Long = documentSnapshot["experience"] as Long
+                prof_username_edt.text = documentSnapshot.getString("username")
+                prof_email_edt.text = documentSnapshot.getString("email")
+                prof_level_txtV.text = "${experience / 100} LVL"
+                prof_experience_prB.progress = experience.mod(100)
                 prof_username_edt.text = documentSnapshot.getString("username")
                 prof_email_edt.text = documentSnapshot.getString("email")
                 prof_battles_won_edt.setText(documentSnapshot.getString("battlesWon"))
@@ -54,31 +59,32 @@ class ProfileActivity : AppCompatActivity() {
                 startActivityForResult(intent,1000)
             }
         }
-    prof_chandge_picture_btn.setOnClickListener {
-        startActivityForResult(
-            Intent(
-                Intent.ACTION_PICK,
-                MediaStore.Images.Media.INTERNAL_CONTENT_URI
-            ),
-            GET_FROM_GALLERY
-        )
+        prof_chandge_picture_btn.setOnClickListener {
+            startActivityForResult(
+                Intent(
+                    Intent.ACTION_PICK,
+                    MediaStore.Images.Media.INTERNAL_CONTENT_URI
+                ),
+                GET_FROM_GALLERY
+            )
+        }
+
+        prof_back_btn.setOnClickListener {
+            finish()
+        }
+
     }
-
-
-    }
-
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        when(requestCode){
-            GET_FROM_GALLERY->{
+        when (requestCode) {
+            GET_FROM_GALLERY -> {
                 prof_avatar_img.setImageURI(data?.data)
-                avatarUri=data?.data
+                avatarUri = data?.data
 
                 FirebaseStorage.getInstance().reference
-                    .child(AVATARS_CHILD+Firebase.auth.uid)
+                    .child(AVATARS_CHILD + Firebase.auth.uid)
                     .putFile(avatarUri as Uri)
 
 

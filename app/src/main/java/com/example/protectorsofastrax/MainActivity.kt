@@ -23,14 +23,20 @@ class MainActivity : AppCompatActivity() {
                 Glide.with(this).load(it.toString()).into(main_avatar_img)
             }
 
+        main_profile_btn.setOnClickListener {
+            intent= Intent(this,ProfileActivity::class.java)
+            startActivity(intent)
+        }
+        main_maps_btn.setOnClickListener {
+            intent= Intent(this,MapActivity::class.java)
+            startActivity(intent)
+        }
+
         main_logout_btn.setOnClickListener {
             Firebase.auth.signOut()
             intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
-        main_profile_btn.setOnClickListener {
-            intent= Intent(this,ProfileActivity::class.java)
-            startActivity(intent)
-        }
+
     }
 }
