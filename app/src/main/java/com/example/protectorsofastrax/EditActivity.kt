@@ -21,6 +21,8 @@ import kotlinx.android.synthetic.main.activity_register.*
 
 class EditActivity : AppCompatActivity() {
 
+    var xp: Double = 1.0
+
     private lateinit var user: FirebaseUser
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,15 +37,16 @@ class EditActivity : AppCompatActivity() {
                 edit_phone_edt.setText(documentSnapshot.getString("phone"))
                 edit_name_edt.setText(documentSnapshot.getString("name"))
                 edit_surname_edt.setText(documentSnapshot.getString("surname"))
+                xp = documentSnapshot.getDouble("experience")!!
             }
 
 
             edit_save_btn.setOnClickListener {
                 val intent = Intent()
                 updateProfileInfo()
-                intent.putExtra("username",edit_username_edt.text.toString())
-                intent.putExtra("email",edit_email_edt.text.toString())
-                setResult(1000,intent)
+                intent.putExtra("username", edit_username_edt.text.toString())
+                intent.putExtra("email", edit_email_edt.text.toString())
+                setResult(1000, intent)
                 finish()
 
 
@@ -76,11 +79,15 @@ class EditActivity : AppCompatActivity() {
 //        }
 
 
-
-
     }
-    private fun updateProfileInfo(){
-        var obj= User(user.uid,edit_email_edt.text.toString(),edit_username_edt.text.toString(),edit_name_edt.text.toString(),edit_surname_edt.text.toString(),edit_phone_edt.text.toString())
-        FirebaseFirestore.getInstance().collection("users").document(user.uid).set(obj)
+
+    private fun updateProfileInfo() {
+        var map: MutableMap<String, String> = HashMap<String, String>()
+        map["username"] = edit_username_edt.text.toString()
+        map["email"] = edit_email_edt.text.toString()
+        map["name"] = edit_name_edt.text.toString()
+        map["surname"] = edit_surname_edt.text.toString()
+        map["phone"] = edit_phone_edt.text.toString()
+        FirebaseFirestore.getInstance().collection("users").document(user.uid).update(map.toMap())
     }
 }
