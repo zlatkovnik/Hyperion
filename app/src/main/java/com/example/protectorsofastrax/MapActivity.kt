@@ -15,12 +15,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.protectorsofastrax.data.UserLocation
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_map.*
 import org.osmdroid.config.Configuration
@@ -37,7 +39,7 @@ class MapActivity : AppCompatActivity() {
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
-
+    private var friendLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -69,8 +71,17 @@ class MapActivity : AppCompatActivity() {
         ) {
             requestLocationPermission()
         } else {
-            setupMap()
+            FirebaseFirestore.getInstance().collection("users").document(user.uid).get().addOnSuccessListener { ds ->
+                var friends: List<String> = ds.data!!["friends"] as List<String>
+                friends.forEach { id ->
+                    friendLocations[id] = UserLocation(id, 0.0, 0.0, null)
+                }
+                setupMap()
+            }
+
         }
+
+
 
     }
 
@@ -78,7 +89,7 @@ class MapActivity : AppCompatActivity() {
         override fun onLocationChanged(location: Location) {
             FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
                 .setValue(GeoPoint(location.latitude, location.longitude))
-            setupMap()
+//            setupMap()
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
@@ -142,23 +153,37 @@ class MapActivity : AppCompatActivity() {
             locationListener
         )
 
-        FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.value == null) {
-                        return
-                    }
-                    val location: HashMap<String, Double> = snapshot.value as HashMap<String, Double>
-                    val marker = Marker(map)
-                    marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
-                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    map!!.overlays.add(marker)
-                }
+        friendLocations.forEach {
+            FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(it.key)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.value == null) {
+                            return
+                        }
+                        val location: HashMap<String, Double> = snapshot.value as HashMap<String, Double>
+                        val friend = friendLocations[it.key]
+                        if(friend?.marker == null){
+                            val marker = Marker(map)
 
-                override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
-                }
-            })
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            map!!.overlays.add(marker)
+                            friend?.latitude = location["latitude"]!!
+                            friend?.longitude = location["longitude"]!!
+                            friend?.marker = marker
+                        }
+                        friend?.marker!!.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        TODO("Not yet implemented")
+                    }
+                })
+        }
+
+    }
+
+    fun findFriends(){
+
     }
 
     override fun onResume() {
