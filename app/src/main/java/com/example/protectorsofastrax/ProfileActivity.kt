@@ -40,7 +40,7 @@ class ProfileActivity : AppCompatActivity() {
                 }
             val docRef = FirebaseFirestore.getInstance().collection("users").document(user.uid)
             docRef.get().addOnSuccessListener { documentSnapshot ->
-                var experience: Long = documentSnapshot["experience"] as Long
+                var experience: Long = documentSnapshot.getLong("experience") as Long
                 prof_username_edt.text = documentSnapshot.getString("username")
                 prof_email_edt.text = documentSnapshot.getString("email")
                 prof_level_txtV.text = "${experience.div(100)} LVL"

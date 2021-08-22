@@ -90,27 +90,21 @@ class RegisterActivity : AppCompatActivity() {
                                     User(firebaseUser.uid, email, username, name, surname, phone, 100.0f);
 
                                 FirebaseFirestore.getInstance().collection("users")
-                                    .document(firebaseUser.uid).set(user).addOnSuccessListener {
-                                        Toast.makeText(
-                                            this,
-                                            "you were registered successfully.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    .document(user.id).set(user).addOnSuccessListener {
+                                        val intent = Intent(this, MainActivity::class.java)
+                                        intent.flags =
+                                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                        intent.putExtra("user_id", firebaseUser.uid)
+                                        intent.putExtra("email", email)
+                                        startActivity(intent)
+                                        finish()
                                     }.addOnFailureListener {
                                         Toast.makeText(
                                             this,
                                             it.message.toString(),
-                                            Toast.LENGTH_SHORT
+                                            Toast.LENGTH_LONG
                                         ).show()
                                     }
-
-                                val intent = Intent(this, MainActivity::class.java)
-                                intent.flags =
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                intent.putExtra("user_id", firebaseUser.uid)
-                                intent.putExtra("email", email)
-                                startActivity(intent)
-                                finish()
                             } else {
                                 Toast.makeText(
                                     this,

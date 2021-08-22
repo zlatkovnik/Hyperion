@@ -8,7 +8,8 @@ data class User(
     var surname: String,
     var phone: String,
 
-    var experience: Float = 0.0f
+    var experience: Float = 0.0f,
+    var friends: List<String> = arrayOf<String>().toList()
 ) {
 
 }

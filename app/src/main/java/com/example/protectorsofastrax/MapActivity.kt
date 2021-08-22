@@ -4,11 +4,17 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import android.preference.PreferenceManager
 import android.view.View
 import android.widget.Toast
@@ -24,12 +30,17 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_map.*
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.GroundOverlay2
 import org.osmdroid.views.overlay.Marker
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 class MapActivity : AppCompatActivity() {
@@ -43,6 +54,8 @@ class MapActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val policy = ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
         val ctx: Context = applicationContext
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
@@ -71,16 +84,16 @@ class MapActivity : AppCompatActivity() {
         ) {
             requestLocationPermission()
         } else {
-            FirebaseFirestore.getInstance().collection("users").document(user.uid).get().addOnSuccessListener { ds ->
-                var friends: List<String> = ds.data!!["friends"] as List<String>
-                friends.forEach { id ->
-                    friendLocations[id] = UserLocation(id, 0.0, 0.0, null)
+            FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
+                .addOnSuccessListener { ds ->
+                    var friends: List<String> = ds.data!!["friends"] as List<String>
+                    friends.forEach { id ->
+                        friendLocations[id] = UserLocation(id, 0.0, 0.0, null)
+                    }
+                    setupMap()
                 }
-                setupMap()
-            }
 
         }
-
 
 
     }
@@ -160,18 +173,35 @@ class MapActivity : AppCompatActivity() {
                         if (snapshot.value == null) {
                             return
                         }
-                        val location: HashMap<String, Double> = snapshot.value as HashMap<String, Double>
+                        val location: HashMap<String, Double> =
+                            snapshot.value as HashMap<String, Double>
                         val friend = friendLocations[it.key]
-                        if(friend?.marker == null){
-                            val marker = Marker(map)
+                        if (friend?.overlay == null) {
+                            val overlay2 = GroundOverlay2()
+                            FirebaseStorage.getInstance().reference
+                                .child("avatars/" + it.key)
+                                .downloadUrl
+                                .addOnSuccessListener { url ->
+                                    val connection: HttpURLConnection =
+                                        URL(url.toString()).openConnection() as HttpURLConnection
+                                    connection.connect()
+                                    val input: InputStream = connection.inputStream
 
-                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            map!!.overlays.add(marker)
+                                    val x = BitmapFactory.decodeStream(input)
+                                    overlay2.image = x
+                                }
+                            //overlay2.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            map!!.overlays.add(overlay2)
                             friend?.latitude = location["latitude"]!!
                             friend?.longitude = location["longitude"]!!
-                            friend?.marker = marker
+                            friend?.overlay = overlay2
                         }
-                        friend?.marker!!.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                        friend?.overlay!!.setPosition(
+                            GeoPoint(
+                                location["latitude"]!! - 0.001,
+                                location["longitude"]!! + 0.001
+                            ), GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                        )
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -182,7 +212,7 @@ class MapActivity : AppCompatActivity() {
 
     }
 
-    fun findFriends(){
+    fun findFriends() {
 
     }
 
