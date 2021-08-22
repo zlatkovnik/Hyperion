@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         main_profile_btn.setOnClickListener {
             intent= Intent(this,ProfileActivity::class.java)
+            intent.putExtra("user_id", Firebase.auth.uid)
             startActivity(intent)
         }
         main_maps_btn.setOnClickListener {

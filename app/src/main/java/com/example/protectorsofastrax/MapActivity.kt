@@ -3,6 +3,7 @@ package com.example.protectorsofastrax
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -102,7 +103,7 @@ class MapActivity : AppCompatActivity() {
         override fun onLocationChanged(location: Location) {
             FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
                 .setValue(GeoPoint(location.latitude, location.longitude))
-//            setupMap()
+            setupMap()
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
@@ -176,8 +177,7 @@ class MapActivity : AppCompatActivity() {
                         val location: HashMap<String, Double> =
                             snapshot.value as HashMap<String, Double>
                         val friend = friendLocations[it.key]
-                        if (friend?.overlay == null) {
-                            val overlay2 = GroundOverlay2()
+                        if (friend?.marker == null) {
                             FirebaseStorage.getInstance().reference
                                 .child("avatars/" + it.key)
                                 .downloadUrl
@@ -188,20 +188,27 @@ class MapActivity : AppCompatActivity() {
                                     val input: InputStream = connection.inputStream
 
                                     val x = BitmapFactory.decodeStream(input)
-                                    overlay2.image = x
+
+                                    val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
+
+                                    val marker = Marker(map)
+                                    marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                    marker.icon = drawable
+                                    map!!.overlays.add(marker)
+                                    friend?.marker = marker
+                                    marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+
+                                        intent= Intent(this@MapActivity, ProfileActivity::class.java)
+                                        intent.putExtra("user_id", friend?.uid)
+                                        startActivity(intent)
+                                        return@OnMarkerClickListener true
+                                    })
                                 }
-                            //overlay2.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            map!!.overlays.add(overlay2)
-                            friend?.latitude = location["latitude"]!!
-                            friend?.longitude = location["longitude"]!!
-                            friend?.overlay = overlay2
                         }
-                        friend?.overlay!!.setPosition(
-                            GeoPoint(
-                                location["latitude"]!! - 0.001,
-                                location["longitude"]!! + 0.001
-                            ), GeoPoint(location["latitude"]!!, location["longitude"]!!)
-                        )
+                        friend?.latitude = location["latitude"]!!
+                        friend?.longitude = location["longitude"]!!
+                        friend?.marker?.position = GeoPoint(friend!!.latitude, friend!!.longitude)
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -226,4 +233,3 @@ class MapActivity : AppCompatActivity() {
         map!!.onPause()
     }
 }
-
