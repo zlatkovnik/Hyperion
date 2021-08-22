@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_profile.*
@@ -20,7 +21,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
-class CardsAdapter( private val img: Array<String>) :
+class CardsAdapter( private val img: Array<String> , private val name: Array<String>) :
     RecyclerView.Adapter<CardsAdapter.ViewHolder>() {
 
 
@@ -30,13 +31,13 @@ class CardsAdapter( private val img: Array<String>) :
      */
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//        val textView: TextView
+        val heroName: TextView
         var heroImage: ImageView
 
         init {
             // Define click listener for the ViewHolder's View.
             heroImage=view.findViewById(R.id.card_hero_img)
-//            textView = view.findViewById(R.id.card_heroName_txt)
+            heroName = view.findViewById(R.id.card_heroName_txt)
         }
     }
 
@@ -65,6 +66,7 @@ class CardsAdapter( private val img: Array<String>) :
 
         x = BitmapFactory.decodeStream(input)
         viewHolder.heroImage.setImageBitmap(x)
+        viewHolder.heroName.setText(name[position])
     }
 
     // Return the size of your dataset (invoked by the layout manager)
