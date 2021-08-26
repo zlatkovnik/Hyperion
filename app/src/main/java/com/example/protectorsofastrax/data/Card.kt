@@ -1,9 +1,9 @@
 package com.example.protectorsofastrax.data
 
 data class Card (
-    var cid: String,
-    var hero: String,
-    var clas: String,
+    var id: String,
     var name: String,
+    var race: String,
+    var clas: String,
     var power: Integer,
         )

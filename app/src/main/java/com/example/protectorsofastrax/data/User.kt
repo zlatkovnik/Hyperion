@@ -9,7 +9,9 @@ data class User(
     var phone: String,
 
     var experience: Float = 0.0f,
-    var friends: List<String> = arrayOf<String>().toList()
+    var battlesWon: Int = 0,
+    var friends: List<String> = arrayOf<String>().toList(),
+    var cards: List<String> = arrayOf<String>().toList()
 ) {
 
 }

@@ -44,18 +44,18 @@ class ProfileActivity : AppCompatActivity() {
                 }
             val docRef = FirebaseFirestore.getInstance().collection("users").document(userId)
             docRef.get().addOnSuccessListener { documentSnapshot ->
+                var cardIds: ArrayList<String> = documentSnapshot.get("cards") as ArrayList<String>
                 var experience: Long = documentSnapshot.getLong("experience") as Long
                 prof_username_edt.text = documentSnapshot.getString("username")
                 prof_email_edt.text = documentSnapshot.getString("email")
                 prof_level_txtV.text = "${experience.div(100)} LVL"
                 prof_experience_prB.progress = experience.mod(100)
                 prof_email_edt.text = documentSnapshot.getString("email")
-                prof_battles_won_edt.setText(documentSnapshot.getString("battlesWon"))
-                prof_cards_in_collection_edt.setText(documentSnapshot.getString("cardsInCollection"))
-
+                prof_battles_won_edt.setText(documentSnapshot.get("battlesWon").toString())
+                prof_cards_in_collection_edt.setText(cardIds.size.toString())
 
             }
-            if (Firebase.auth.uid !== userId) {
+            if (Firebase.auth.uid != userId) {
                 prof_edit_btn.visibility = View.INVISIBLE
                 prof_edit_btn.isEnabled = false
                 prof_chandge_picture_btn.visibility = View.INVISIBLE
