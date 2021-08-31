@@ -14,14 +14,19 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.protectorsofastrax.data.Card
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_profile.*
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
+import kotlin.collections.ArrayList
 
 
-class CardsAdapter( private val img: Array<String> , private val name: Array<String>) :
+class CardsAdapter( private val cards: ArrayList<Card>) :
     RecyclerView.Adapter<CardsAdapter.ViewHolder>() {
 
 
@@ -32,12 +37,17 @@ class CardsAdapter( private val img: Array<String> , private val name: Array<Str
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val heroName: TextView
-        var heroImage: ImageView
+        val heroImage: ImageView
+        val classImage: ImageView
+        val heroPower: TextView
+
 
         init {
             // Define click listener for the ViewHolder's View.
             heroImage=view.findViewById(R.id.card_hero_img)
             heroName = view.findViewById(R.id.card_heroName_txt)
+            classImage = view.findViewById(R.id.card_class_img)
+            heroPower = view.findViewById(R.id.card_power_txt)
         }
     }
 
@@ -57,20 +67,34 @@ class CardsAdapter( private val img: Array<String> , private val name: Array<Str
         // contents of the view with that element
 //        viewHolder.textView.text = dataSet[position]
 
-        val x: Bitmap
+        FirebaseStorage.getInstance().reference
+            .child("cards/" + cards[position].picture)
+            .downloadUrl
+            .addOnSuccessListener { uri ->
+                val connection: HttpURLConnection =
+                    URL(uri.toString()).openConnection() as HttpURLConnection
+                connection.connect()
+                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
+                viewHolder.heroImage.setImageBitmap(x)
+            }
 
-        val connection: HttpURLConnection =
-            URL(img[position].toString()).openConnection() as HttpURLConnection
-        connection.connect()
-        val input: InputStream = connection.inputStream
+        FirebaseStorage.getInstance().reference
+            .child("classes/" + cards[position].clas.toLowerCase() + ".png")
+            .downloadUrl
+            .addOnSuccessListener { uri ->
+                val connection: HttpURLConnection =
+                    URL(uri.toString()).openConnection() as HttpURLConnection
+                connection.connect()
+                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
+                viewHolder.classImage.setImageBitmap(x)
+            }
 
-        x = BitmapFactory.decodeStream(input)
-        viewHolder.heroImage.setImageBitmap(x)
-        viewHolder.heroName.setText(name[position])
+        viewHolder.heroName.text = cards[position].name
+        viewHolder.heroPower.text = cards[position].power.toString()
     }
 
     // Return the size of your dataset (invoked by the layout manager)
-    override fun getItemCount() = img.size
+    override fun getItemCount() = cards.size
 
 }
 

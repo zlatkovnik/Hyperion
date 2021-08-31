@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
         main_myCards_btn.setOnClickListener {
             intent= Intent(this, MyCardsActivity::class.java)
+            intent.putExtra("user_id", Firebase.auth.uid)
             startActivity(intent)
         }
 
