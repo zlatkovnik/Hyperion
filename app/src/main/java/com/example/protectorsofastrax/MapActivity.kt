@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
@@ -33,11 +32,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_map.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.GroundOverlay2
+import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -51,7 +53,7 @@ class MapActivity : AppCompatActivity() {
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
-    private var friendLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
+    private var userLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -70,6 +72,23 @@ class MapActivity : AppCompatActivity() {
         val startPoint = GeoPoint(43.3209, 21.8958)
         map!!.controller.setCenter(startPoint)
 
+        val mReceive: MapEventsReceiver = object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+                return false
+            }
+
+            override fun longPressHelper(p: GeoPoint): Boolean {
+                var intent = Intent(this@MapActivity, CreateBattleActivity::class.java)
+                intent.putExtra("latitude", p.latitude)
+                intent.putExtra("longitude", p.longitude)
+                startActivity(intent)
+                return false
+            }
+        }
+
+        val OverlayEvents = MapEventsOverlay(baseContext, mReceive)
+        map!!.overlays.add(OverlayEvents)
+
         map_back_btn.setOnClickListener {
             finish()
         }
@@ -85,14 +104,26 @@ class MapActivity : AppCompatActivity() {
         ) {
             requestLocationPermission()
         } else {
-            FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
-                .addOnSuccessListener { ds ->
-                    var friends: List<String> = ds.data!!["friends"] as List<String>
-                    friends.forEach { id ->
-                        friendLocations[id] = UserLocation(id, 0.0, 0.0, null)
+            FirebaseFirestore.getInstance().collection("users").get()
+                .addOnSuccessListener { allUsers ->
+                    var users: ArrayList<String> = ArrayList();
+                    allUsers.forEach {
+                        users.add(it.id)
                     }
-                    setupMap()
+                    FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
+                        .addOnSuccessListener { allFriends ->
+                            var friends: List<String> = allFriends.data!!["friends"] as List<String>
+                            users.forEach { id ->
+                                var isFriend = false
+                                if(friends.contains(id)){
+                                    isFriend = true
+                                }
+                                userLocations[id] = UserLocation(id, 0.0, 0.0, isFriend, null)
+                            }
+                            setupMap()
+                        }
                 }
+
 
         }
 
@@ -167,55 +198,65 @@ class MapActivity : AppCompatActivity() {
             locationListener
         )
 
-        friendLocations.forEach {
-            FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(it.key)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        if (snapshot.value == null) {
-                            return
+        GlobalScope.launch {
+            userLocations.forEach {
+                FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(it.key)
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            if (snapshot.value == null) {
+                                return
+                            }
+                            val location: HashMap<String, Double> =
+                                snapshot.value as HashMap<String, Double>
+                            val user = userLocations[it.key]
+                            if (user?.marker == null && user!!.isFriend) {
+                                FirebaseStorage.getInstance().reference
+                                    .child("avatars/" + it.key)
+                                    .downloadUrl
+                                    .addOnSuccessListener { url ->
+                                        val connection: HttpURLConnection =
+                                            URL(url.toString()).openConnection() as HttpURLConnection
+                                        connection.connect()
+                                        val input: InputStream = connection.inputStream
+
+                                        val x = BitmapFactory.decodeStream(input)
+
+                                        val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
+
+                                        val marker = Marker(map)
+                                        marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                        marker.icon = drawable
+                                        map!!.overlays.add(marker)
+                                        user?.marker = marker
+                                        marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+
+                                            intent= Intent(this@MapActivity, ProfileActivity::class.java)
+                                            intent.putExtra("user_id", user?.uid)
+                                            startActivity(intent)
+                                            return@OnMarkerClickListener true
+                                        })
+                                    }
+                            }
+                            if (user?.marker == null && !user!!.isFriend) {
+                                val marker = Marker(map)
+                                marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
+                                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                map!!.overlays.add(marker)
+                                user?.marker = marker
+                            }
+                            user?.latitude = location["latitude"]!!
+                            user?.longitude = location["longitude"]!!
+                            user?.marker?.position = GeoPoint(user!!.latitude, user!!.longitude)
                         }
-                        val location: HashMap<String, Double> =
-                            snapshot.value as HashMap<String, Double>
-                        val friend = friendLocations[it.key]
-                        if (friend?.marker == null) {
-                            FirebaseStorage.getInstance().reference
-                                .child("avatars/" + it.key)
-                                .downloadUrl
-                                .addOnSuccessListener { url ->
-                                    val connection: HttpURLConnection =
-                                        URL(url.toString()).openConnection() as HttpURLConnection
-                                    connection.connect()
-                                    val input: InputStream = connection.inputStream
 
-                                    val x = BitmapFactory.decodeStream(input)
-
-                                    val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
-
-                                    val marker = Marker(map)
-                                    marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
-                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                                    marker.icon = drawable
-                                    map!!.overlays.add(marker)
-                                    friend?.marker = marker
-                                    marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
-
-                                        intent= Intent(this@MapActivity, ProfileActivity::class.java)
-                                        intent.putExtra("user_id", friend?.uid)
-                                        startActivity(intent)
-                                        return@OnMarkerClickListener true
-                                    })
-                                }
+                        override fun onCancelled(error: DatabaseError) {
+                            TODO("Not yet implemented")
                         }
-                        friend?.latitude = location["latitude"]!!
-                        friend?.longitude = location["longitude"]!!
-                        friend?.marker?.position = GeoPoint(friend!!.latitude, friend!!.longitude)
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        TODO("Not yet implemented")
-                    }
-                })
+                    })
+            }
         }
+
 
     }
 
