@@ -23,6 +23,11 @@ class MainActivity : AppCompatActivity() {
                 Glide.with(this).load(it.toString()).into(main_avatar_img)
             }
 
+        main_leaderboard_btn.setOnClickListener{
+            intent = Intent(this, LeaderboardActivity::class.java)
+            startActivity(intent)
+        }
+
         main_profile_btn.setOnClickListener {
             intent= Intent(this,ProfileActivity::class.java)
             intent.putExtra("user_id", Firebase.auth.uid)
