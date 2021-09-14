@@ -10,8 +10,10 @@ import android.os.StrictMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.Card
@@ -26,7 +28,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class EnemiesAdapter(private val enemies: ArrayList<Enemy>) :
+class EnemiesAdapter(private val enemies: ArrayList<Enemy>, val clickListener: OnEnemyItemClickListner) :
     RecyclerView.Adapter<EnemiesAdapter.ViewHolder>() {
 
 
@@ -39,11 +41,13 @@ class EnemiesAdapter(private val enemies: ArrayList<Enemy>) :
         val name: TextView
         val power: TextView
         val picture: ImageView
+        val select: Button
 
         init {
             name = view.findViewById(R.id.enemy_name_txt)
             power = view.findViewById(R.id.enemy_power_txt)
-            picture = view.findViewById((R.id.enemy_avatar_img))
+            picture = view.findViewById(R.id.enemy_avatar_img)
+            select = view.findViewById(R.id.enemy_select_btn)
         }
     }
 
@@ -72,10 +76,16 @@ class EnemiesAdapter(private val enemies: ArrayList<Enemy>) :
 
         viewHolder.name.text = enemies[position].name
         viewHolder.power.text = enemies[position].power.toString()
+
+        viewHolder.itemView.setOnClickListener {
+            clickListener.onItemClick(enemies[position], position)
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = enemies.size
-
 }
 
+interface OnEnemyItemClickListner{
+    fun onItemClick(item: Enemy, position: Int)
+}
