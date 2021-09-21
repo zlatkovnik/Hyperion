@@ -49,5 +49,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        intent = Intent(this, AddFriendsActivity::class.java)
+        startActivity(intent)
+
     }
 }
