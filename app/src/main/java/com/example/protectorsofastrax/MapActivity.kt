@@ -21,6 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.UserLocation
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -49,11 +50,13 @@ import java.net.URL
 class MapActivity : AppCompatActivity() {
     var map: MapView? = null
     var FIREBASE_CHILD = "users"
+    var FIREBASE_BATTLES="battles"
     val MY_PERMISSIONS_REQUEST_LOCATION = 99
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
     private var userLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
+    private var battleLocations: ArrayList<BattleLocation> = ArrayList<BattleLocation>();
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
