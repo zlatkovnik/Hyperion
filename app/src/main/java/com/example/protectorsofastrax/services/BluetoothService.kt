@@ -1,19 +1,24 @@
-package com.example.protectorsofastrax.helper
+package com.example.protectorsofastrax.services
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.util.Log
+import com.example.protectorsofastrax.data.User
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.*
+import kotlin.collections.ArrayList
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class BluetoothService {
     var NAME ="veza"
@@ -26,10 +31,6 @@ class BluetoothService {
     init {
         user = Firebase.auth.currentUser as FirebaseUser
     }
-
-
-
-
 
     fun startThread(){
         Log.d(ContentValues.TAG, "start")
@@ -155,19 +156,21 @@ class BluetoothService {
 
         override fun run() {
             writeUserId(userId.toByteArray())
-            Log.d(ContentValues.TAG, "Pokrenut conected thread")
+            Log.d(TAG, "Pokrenut conected thread")
             var buffer: ByteArray = ByteArray(1024)
             var bytes: Int
-            val currentUserId = user.uid
+            var incomingMessage: String = ""
 
             while (true) {
                 try {
 
                     bytes = mmInStream!!.read(buffer)
-                    var incomingMessage: String = String(buffer, 0, bytes)
-//                    Log.d(TAG, "inputStream: " + incomingMessage)
-                    Log.d(ContentValues.TAG, "UserRECIVED: " + incomingMessage + "CURRENT USER: " + currentUserId)
-
+                    incomingMessage = String(buffer, 0, bytes)
+                    //Log.d(TAG, "UserRECIVED: " + incomingMessage + "CURRENT USER: " + currentUserId)
+                    if(incomingMessage != ""){
+                        Log.d(TAG, incomingMessage)
+                        addFreind(incomingMessage)
+                    }
 
                 } catch (e: IOException) {
                 }
@@ -177,11 +180,11 @@ class BluetoothService {
 
         fun write(bytes: ByteArray?) {
             val text = String(bytes!!, Charset.defaultCharset())
-            Log.d(ContentValues.TAG, "write: Writing to outputstream: $text")
+            Log.d(TAG, "write: Writing to outputstream: $text")
             try {
                 mmOutStream!!.write(bytes)
             } catch (e: IOException) {
-                Log.e(ContentValues.TAG, "write: Error writing to output stream. " + e.message)
+                Log.e(TAG, "write: Error writing to output stream. " + e.message)
             }
         }
 
@@ -210,5 +213,18 @@ class BluetoothService {
 
         }
     }
+    fun addFreind(friendId : String){
+        val currentUserId = user.uid
+        val docRef = FirebaseFirestore.getInstance().collection("users").document(friendId)
+        docRef.get().addOnSuccessListener { documentSnapshot ->
+            var userObj = documentSnapshot.toObject(User::class.java)
+            userObj?.friends = ArrayList()
+            FirebaseFirestore.getInstance().collection("users").document(currentUserId).update(
+                "friends", FieldValue.arrayUnion(userObj)
+            )
+        }
+    }
+
+
 
 }

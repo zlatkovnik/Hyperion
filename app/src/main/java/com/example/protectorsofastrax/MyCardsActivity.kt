@@ -58,7 +58,7 @@ class MyCardsActivity : AppCompatActivity() {
                     this@MyCardsActivity.runOnUiThread(Runnable {
                         drawCards(cards)
                     })
-                    drawCards(cards)
+//                    drawCards(cards)
                 }
             }
             .addOnFailureListener {

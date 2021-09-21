@@ -94,5 +94,7 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="myCards">MyCards</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="trade">Trade</string>
 </resources>
