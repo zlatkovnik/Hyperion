@@ -4,13 +4,11 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import com.example.protectorsofastrax.services.BluetoothService
@@ -48,7 +46,7 @@ class AddFriendsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_find_friends)
+        setContentView(R.layout.activity_add_friends)
 
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
