@@ -1,6 +1,7 @@
 package com.example.protectorsofastrax
 
 import android.Manifest
+import android.R
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -16,7 +18,6 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.preference.PreferenceManager
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -64,10 +65,10 @@ class MapActivity : AppCompatActivity() {
 
         val ctx: Context = applicationContext
         Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx))
-        setContentView(R.layout.activity_map)
+        setContentView(com.example.protectorsofastrax.R.layout.activity_map)
 
 
-        map = findViewById<View>(R.id.map) as MapView
+        map = findViewById<View>(com.example.protectorsofastrax.R.id.map) as MapView
         map!!.setTileSource(TileSourceFactory.MAPNIK)
         map!!.setMultiTouchControls(true)
         map!!.controller.setZoom(15.0)
@@ -295,28 +296,30 @@ class MapActivity : AppCompatActivity() {
 //                        }
 //                    if(picture!="")
 //                    {
-                        FirebaseStorage.getInstance().reference
-                            .child("battles/" + "borba.png")
-                            .downloadUrl
-                            .addOnSuccessListener { url->
-                                val connection: HttpURLConnection =
-                                    URL(url.toString()).openConnection() as HttpURLConnection
-                                connection.connect()
-                                val input: InputStream = connection.inputStream
-                                val x = BitmapFactory.decodeStream(input)
+//                        FirebaseStorage.getInstance().reference
+//                            .child("battles/" + "borba.png")
+//                            .downloadUrl
+//                            .addOnSuccessListener { url->
+//                                val connection: HttpURLConnection =
+//                                    URL(url.toString()).openConnection() as HttpURLConnection
+//                                connection.connect()
+//                                val input: InputStream = connection.inputStream
+//                                val x = BitmapFactory.decodeStream(input)
+////
+//                                val battleMarker = (com.example.protectorsofastrax.R.drawable.borba)
+//                                val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
 
-                                val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
 
                                 val marker=Marker(map)
                                 marker.position= GeoPoint(it.latitude,it.longitude)
                                 marker.setAnchor(Marker.ANCHOR_CENTER,Marker.ANCHOR_CENTER)
-                                marker.icon = drawable
+                                marker.icon=getDrawable(com.example.protectorsofastrax.R.drawable.borba)
                                 map!!.overlays.add(marker)
                                 it.marker=marker
-                            }
-                            .addOnFailureListener{
-                                TODO()
-                            }
+//                            }
+//                            .addOnFailureListener{
+//                                TODO()
+//                            }
                     }else {
                         val marker = Marker(map)
                         marker.position = GeoPoint(it.latitude!!, it.longitude!!)
