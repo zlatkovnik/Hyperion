@@ -217,10 +217,9 @@ class BluetoothService {
         val currentUserId = user.uid
         val docRef = FirebaseFirestore.getInstance().collection("users").document(friendId)
         docRef.get().addOnSuccessListener { documentSnapshot ->
-            var userObj = documentSnapshot.toObject(User::class.java)
-            userObj?.friends = ArrayList()
+            val userId = documentSnapshot["id"]
             FirebaseFirestore.getInstance().collection("users").document(currentUserId).update(
-                "friends", FieldValue.arrayUnion(userObj)
+                "friends", FieldValue.arrayUnion(userId)
             )
         }
     }
