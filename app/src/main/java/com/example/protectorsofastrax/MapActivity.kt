@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.preference.PreferenceManager
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,10 +26,7 @@ import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.UserLocation
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -52,6 +50,7 @@ class MapActivity : AppCompatActivity() {
     var FIREBASE_CHILD = "users"
     var FIREBASE_BATTLES="battles"
     val MY_PERMISSIONS_REQUEST_LOCATION = 99
+
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
@@ -118,7 +117,7 @@ class MapActivity : AppCompatActivity() {
                             var friends: List<String> = allFriends.data!!["friends"] as List<String>
                             users.forEach { id ->
                                 var isFriend = false
-                                if(friends.contains(id)){
+                                if (friends.contains(id)) {
                                     isFriend = true
                                 }
                                 userLocations[id] = UserLocation(id, 0.0, 0.0, isFriend, null)
@@ -128,11 +127,39 @@ class MapActivity : AppCompatActivity() {
                 }
 
 
+            FirebaseDatabase.getInstance().reference.child(FIREBASE_BATTLES).get()
+                .addOnSuccessListener { it ->
+                    it.children.forEach{
+                        var battles=it.value as  HashMap<String, BattleLocation>
+                        battleLocations.add(BattleLocation(it.key as String,battles["enemyId"] as String,battles["latitude"] as Double, battles["longitude"] as Double, null))
+                    }
+                    setupMap()
+                }
+                .addOnFailureListener{
+                    val toast =
+                        Toast.makeText(applicationContext, "Hello Javatpoint", Toast.LENGTH_SHORT)
+                }
+//                .addValueEventListener(object : ValueEventListener {
+//                    override fun onDataChange(snapshot: DataSnapshot){
+//                        if (snapshot.value == null) {
+//                            return
+//                        }
+//                     val battles:ArrayList<String> = snapshot.value as ArrayList<String>
+//                    }
+//
+//                    override fun onCancelled(error: DatabaseError) {
+//                        TODO("Not yet implemented")
+//                    }
+//                })}
+//                    battles?.forEach{
+//                        var enemyID=it["enemyId"] as String
+//                        var latitude=it["latitude"] as Double
+//                        var longitude= it["longitude"] as Double
+//
+//                        battleLocations.add(BattleLocation(it.id,enemyID,latitude,longitude,null))
+//
         }
-
-
     }
-
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
@@ -258,6 +285,48 @@ class MapActivity : AppCompatActivity() {
                         }
                     })
             }
+            battleLocations.forEach{
+                if(it?.marker==null)
+                {
+//                    var picture : String= ""
+//                    FirebaseFirestore.getInstance().collection("enemies").document(it.enemyId).get()
+//                        .addOnSuccessListener {
+//                             picture= it.getString("picture").toString()
+//                        }
+//                    if(picture!="")
+//                    {
+                        FirebaseStorage.getInstance().reference
+                            .child("battles/" + "borba.png")
+                            .downloadUrl
+                            .addOnSuccessListener { url->
+                                val connection: HttpURLConnection =
+                                    URL(url.toString()).openConnection() as HttpURLConnection
+                                connection.connect()
+                                val input: InputStream = connection.inputStream
+                                val x = BitmapFactory.decodeStream(input)
+
+                                val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
+
+                                val marker=Marker(map)
+                                marker.position= GeoPoint(it.latitude,it.longitude)
+                                marker.setAnchor(Marker.ANCHOR_CENTER,Marker.ANCHOR_CENTER)
+                                marker.icon = drawable
+                                map!!.overlays.add(marker)
+                                it.marker=marker
+                            }
+                            .addOnFailureListener{
+                                TODO()
+                            }
+                    }else {
+                        val marker = Marker(map)
+                        marker.position = GeoPoint(it.latitude!!, it.longitude!!)
+                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        map!!.overlays.add(marker)
+                        it.marker = marker
+                    }
+                it?.marker!!.position= GeoPoint(it!!.latitude,it!!.longitude)
+            }
+
         }
 
 
