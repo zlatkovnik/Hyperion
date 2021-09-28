@@ -15,7 +15,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProtectorsOfAstrax">
-        <activity android:name=".AddFriendsActivity"></activity>
+        <activity android:name=".BattleActivity"></activity>
+        <activity android:name=".AddFriendsActivity" />
         <activity
             android:name=".LeaderboardActivity"
             android:exported="true" />

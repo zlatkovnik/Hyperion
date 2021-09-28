@@ -1,7 +1,6 @@
 package com.example.protectorsofastrax
 
 import android.Manifest
-import android.R
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -9,7 +8,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -289,13 +287,6 @@ class MapActivity : AppCompatActivity() {
             battleLocations.forEach{
                 if(it?.marker==null)
                 {
-//                    var picture : String= ""
-//                    FirebaseFirestore.getInstance().collection("enemies").document(it.enemyId).get()
-//                        .addOnSuccessListener {
-//                             picture= it.getString("picture").toString()
-//                        }
-//                    if(picture!="")
-//                    {
 //                        FirebaseStorage.getInstance().reference
 //                            .child("battles/" + "borba.png")
 //                            .downloadUrl
@@ -311,11 +302,19 @@ class MapActivity : AppCompatActivity() {
 
 
                                 val marker=Marker(map)
-                                marker.position= GeoPoint(it.latitude,it.longitude)
-                                marker.setAnchor(Marker.ANCHOR_CENTER,Marker.ANCHOR_CENTER)
                                 marker.icon=getDrawable(com.example.protectorsofastrax.R.drawable.borba)
+                                marker.position= GeoPoint(it.latitude,it.longitude)
+                                marker.setAnchor(Marker.ANCHOR_TOP,Marker.ANCHOR_LEFT)
                                 map!!.overlays.add(marker)
                                 it.marker=marker
+                                marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+
+                                  intent= Intent(this@MapActivity, BattleActivity::class.java)
+                                  intent.putExtra("battle_id", it.uid)
+                                  intent.putExtra("enemyID",it.enemyId)
+                                  startActivity(intent)
+                                   return@OnMarkerClickListener true
+                                 })
 //                            }
 //                            .addOnFailureListener{
 //                                TODO()
