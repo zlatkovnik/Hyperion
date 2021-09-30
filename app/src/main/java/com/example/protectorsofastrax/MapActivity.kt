@@ -39,6 +39,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -159,11 +160,20 @@ class MapActivity : AppCompatActivity() {
 //
         }
     }
+    //Potencijalno nepotrebno
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
                 .setValue(GeoPoint(location.latitude, location.longitude))
             setupMap()
+            val oPolygon = Polygon(map)
+            val radius = 50.0
+            val circlePoints = ArrayList<GeoPoint>();
+            for (i in 0..360){
+                circlePoints.add(GeoPoint(location.latitude , location.longitude ).destinationPoint(radius, i.toDouble()));
+            }
+            oPolygon.points = circlePoints;
+            map!!.overlays.add(oPolygon);
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
