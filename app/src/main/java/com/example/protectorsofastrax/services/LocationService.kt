@@ -54,7 +54,8 @@ class LocationService : Service() {
         val notification: Notification = Notification.Builder(this, channelId)
             .setContentTitle("You are live!")
             .setContentText("Other heroes can now see your location")
-            .setSmallIcon(R.drawable.borba)
+            .setSmallIcon(R.drawable.sword_notif_icon)
+            .setColor(Color.WHITE)
             .setContentIntent(pendingIntent)
             .setTicker("nzm")
             .build()
@@ -118,8 +119,9 @@ class LocationService : Service() {
                                     val username = it.data!!["username"] as String
 
                                     var builder = NotificationCompat.Builder(this@LocationService, channelId)
-                                        .setSmallIcon(R.drawable.borba)
-                                        .setContentTitle(username + " is nearby!")
+                                        .setSmallIcon(R.drawable.sword_notif_icon)
+                                        .setColor(Color.WHITE)
+                                        .setContentTitle("$username is nearby!")
                                         .setContentText("Why not say hi?")
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
 
@@ -127,6 +129,39 @@ class LocationService : Service() {
                                         notify(8081, builder.build())
                                     }
                                 }
+                        }
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(ContentValues.TAG, error.message);
+                }
+            })
+
+        FirebaseDatabase.getInstance().reference
+            .child("battles")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val battleLocations = snapshot.value as HashMap<String, HashMap<String, Any>>
+                    for((key, value) in battleLocations) {
+                        if(cachedLocation == null){
+                            continue
+                        }
+                        val latitude = value["latitude"] as Double
+                        val longitude = value["longitude"] as Double
+                        val userLocation = LatLng(latitude, longitude)
+                        val myLocation = LatLng(cachedLocation.latitude, cachedLocation.longitude)
+                        val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
+                        if(distance < 500.0){
+                            var builder = NotificationCompat.Builder(this@LocationService, channelId)
+                                .setSmallIcon(R.drawable.sword_notif_icon)
+                                .setColor(Color.WHITE)
+                                .setContentTitle("New battle nearby!")
+                                .setContentText("Join in on the action")
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+
+                            with(NotificationManagerCompat.from(this@LocationService)) {
+                                notify(8081, builder.build())
+                            }
                         }
                     }
                 }
