@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.protectorsofastrax.ProfileActivity
 import com.example.protectorsofastrax.R
 import com.example.protectorsofastrax.data.UserLocation
 import com.google.android.gms.location.*
@@ -118,11 +119,18 @@ class LocationService : Service() {
                                 .addOnSuccessListener{
                                     val username = it.data!!["username"] as String
 
+                                    val intent = Intent(this@LocationService, ProfileActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                    intent.putExtra("user_id", key)
+                                    val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, 0)
+
                                     var builder = NotificationCompat.Builder(this@LocationService, channelId)
                                         .setSmallIcon(R.drawable.sword_notif_icon)
                                         .setColor(Color.WHITE)
                                         .setContentTitle("$username is nearby!")
                                         .setContentText("Why not say hi?")
+                                        .setContentIntent(pendingIntent)
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
 
                                     with(NotificationManagerCompat.from(this@LocationService)) {
@@ -152,11 +160,18 @@ class LocationService : Service() {
                         val myLocation = LatLng(cachedLocation.latitude, cachedLocation.longitude)
                         val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
                         if(distance < 500.0){
+                            val intent = Intent(this@LocationService, ProfileActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            }
+                            intent.putExtra("battle_id", key)
+                            val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, 0)
+
                             var builder = NotificationCompat.Builder(this@LocationService, channelId)
                                 .setSmallIcon(R.drawable.sword_notif_icon)
                                 .setColor(Color.WHITE)
                                 .setContentTitle("New battle nearby!")
                                 .setContentText("Join in on the action")
+                                .setContentIntent(pendingIntent)
                                 .setPriority(NotificationCompat.PRIORITY_HIGH)
 
                             with(NotificationManagerCompat.from(this@LocationService)) {

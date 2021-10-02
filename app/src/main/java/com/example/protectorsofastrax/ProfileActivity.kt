@@ -78,9 +78,24 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
         prof_back_btn.setOnClickListener {
-            finish()
+            if(isTaskRoot){
+                val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+                startActivity(intent)
+            } else {
+                finish()
+            }
         }
 
+    }
+
+    override fun onBackPressed() {
+//        super.onBackPressed()
+        if(isTaskRoot){
+            val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+            startActivity(intent)
+        } else {
+            finish()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
