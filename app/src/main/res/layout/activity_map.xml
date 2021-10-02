@@ -26,7 +26,7 @@
                 android:minHeight="?attr/actionBarSize"
                 android:theme="?attr/actionBarTheme"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteX="1dp" />
+                tools:layout_editor_absoluteX="0dp" />
 
             <Button
                 android:id="@+id/map_back_btn"
@@ -42,7 +42,7 @@
                 android:id="@+id/map_title_txt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="BATTLEFIELD"
+                android:text="MAP"
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -50,10 +50,46 @@
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
+            <Switch
+                android:id="@+id/map_battle_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Show battles"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:checked="true" />
+
+            <Switch
+                android:id="@+id/map_friends_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Friends Only"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/map_local_switch"
+                app:layout_constraintStart_toEndOf="@+id/map_battle_switch" />
+
+            <Switch
+                android:id="@+id/map_local_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Local only"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent" >
+    </org.osmdroid.views.MapView>
 </LinearLayout>
