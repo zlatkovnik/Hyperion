@@ -56,6 +56,8 @@ class MapActivity : AppCompatActivity() {
 
     private var userLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
     private var battleLocations: ArrayList<BattleLocation> = ArrayList<BattleLocation>();
+
+    private var myCircle: Polygon? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -160,20 +162,23 @@ class MapActivity : AppCompatActivity() {
 //
         }
     }
-    //Potencijalno nepotrebno
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
                 .setValue(GeoPoint(location.latitude, location.longitude))
             setupMap()
-            val oPolygon = Polygon(map)
-            val radius = 50.0
+            if(myCircle == null){
+                myCircle = Polygon(map)
+            } else {
+                map!!.overlays.remove(myCircle)
+            }
+            val radius = 500.0
             val circlePoints = ArrayList<GeoPoint>();
             for (i in 0..360){
                 circlePoints.add(GeoPoint(location.latitude , location.longitude ).destinationPoint(radius, i.toDouble()));
             }
-            oPolygon.points = circlePoints;
-            map!!.overlays.add(oPolygon);
+            myCircle!!.points = circlePoints;
+            map!!.overlays.add(myCircle);
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
@@ -312,7 +317,7 @@ class MapActivity : AppCompatActivity() {
 
 
                                 val marker=Marker(map)
-                                marker.icon=getDrawable(com.example.protectorsofastrax.R.drawable.borba)
+                                marker.icon=getDrawable(R.drawable.borba)
                                 marker.position= GeoPoint(it.latitude,it.longitude)
                                 marker.setAnchor(Marker.ANCHOR_TOP,Marker.ANCHOR_LEFT)
                                 map!!.overlays.add(marker)
@@ -325,10 +330,6 @@ class MapActivity : AppCompatActivity() {
                                   startActivity(intent)
                                    return@OnMarkerClickListener true
                                  })
-//                            }
-//                            .addOnFailureListener{
-//                                TODO()
-//                            }
                     }else {
                         val marker = Marker(map)
                         marker.position = GeoPoint(it.latitude!!, it.longitude!!)
@@ -340,8 +341,6 @@ class MapActivity : AppCompatActivity() {
             }
 
         }
-
-
     }
 
     fun findFriends() {

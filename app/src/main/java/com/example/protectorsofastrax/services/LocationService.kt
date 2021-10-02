@@ -49,6 +49,7 @@ class LocationService : Service() {
 
 // Notification ID cannot be 0.
         startForeground(8080, notification)
+        requestLocationUpdates()
         return Service.START_STICKY
     }
 
@@ -58,9 +59,9 @@ class LocationService : Service() {
 
     private fun requestLocationUpdates() {
         val request = LocationRequest()
-        request.setInterval(10000)
-        request.setFastestInterval(5000)
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        request.interval = 10000
+        request.fastestInterval = 5000
+        request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         val client: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(this)
 
@@ -72,7 +73,7 @@ class LocationService : Service() {
             // received, store the location in Firebase
             client.requestLocationUpdates(request, object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult) {
-                    val location: Location = locationResult.getLastLocation()
+                    val location: Location = locationResult.lastLocation
                     if (location != null) {
                         FirebaseDatabase.getInstance().reference.child("users").child(Firebase.auth.uid!!)
                             .setValue(GeoPoint(location.latitude, location.longitude))
