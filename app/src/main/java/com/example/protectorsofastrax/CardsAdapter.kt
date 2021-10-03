@@ -2,45 +2,44 @@ package com.example.protectorsofastrax
 
 
 
-import android.content.ContentResolver
+import android.app.Activity
+import android.app.PendingIntent.getActivity
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
-import android.net.Uri.parse
-import android.os.StrictMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat.startActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.Card
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_profile.*
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
-import kotlin.collections.ArrayList
 
 
-class CardsAdapter( private val cards: ArrayList<Card>) :
+class CardsAdapter( private val cards: ArrayList<Card>,private val select:Boolean) :
     RecyclerView.Adapter<CardsAdapter.ViewHolder>() {
 
-
+    lateinit private var  context: Context
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
      */
 
+
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+
         val heroName: TextView
         val heroImage: ImageView
         val classImage: ImageView
         val heroPower: TextView
-
+        val cardselected: Button
 
         init {
             // Define click listener for the ViewHolder's View.
@@ -48,6 +47,7 @@ class CardsAdapter( private val cards: ArrayList<Card>) :
             heroName = view.findViewById(R.id.card_heroName_txt)
             classImage = view.findViewById(R.id.card_class_img)
             heroPower = view.findViewById(R.id.card_power_txt)
+            cardselected=view.findViewById(R.id.card_select_btn)
         }
     }
 
@@ -66,7 +66,8 @@ class CardsAdapter( private val cards: ArrayList<Card>) :
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
 //        viewHolder.textView.text = dataSet[position]
-
+//        val item = dataSet.get(holder.absoluteAdapterPosition)
+        val item= cards[viewHolder.adapterPosition] as Int
         FirebaseStorage.getInstance().reference
             .child("cards/" + cards[position].picture)
             .downloadUrl
@@ -91,10 +92,23 @@ class CardsAdapter( private val cards: ArrayList<Card>) :
 
         viewHolder.heroName.text = cards[position].name
         viewHolder.heroPower.text = cards[position].power.toString()
+        context=viewHolder.cardselected.context
+        if(select)
+        {
+            viewHolder.cardselected.isEnabled=true
+            viewHolder.cardselected.visibility=View.VISIBLE
+            viewHolder.cardselected.setOnClickListener {
+            val inte=Intent(context,MyCardsActivity::class.java)
+                inte.putExtra("selected",cards[position].id)
+            }
+        }
     }
+
+
 
     // Return the size of your dataset (invoked by the layout manager)
     override fun getItemCount() = cards.size
+
 
 }
 
