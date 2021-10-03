@@ -6,6 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".RegisterActivity">
 
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/arthas" />
+
+    <ImageView
+        android:layout_width="347dp"
+        android:layout_height="263dp"
+        android:layout_alignParentTop="true"
+        android:alpha="0.7"
+        android:scaleType="centerCrop"
+        android:src="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.782" />
 
     <ImageView
         android:id="@+id/reg_avatar_img"
@@ -58,7 +78,7 @@
         android:id="@+id/reg_surname_edt"
         android:layout_width="140dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="40dp"
         android:ems="10"
         android:hint="surname"
@@ -70,7 +90,7 @@
         android:id="@+id/reg_name_edt"
         android:layout_width="140dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="name"
         android:inputType="textPersonName"
@@ -95,7 +115,7 @@
         android:id="@+id/reg_submit_btn"
         android:layout_width="324dp"
         android:layout_height="66dp"
-        android:layout_marginTop="276dp"
+        android:layout_marginTop="252dp"
         android:text="@string/register"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.459"
@@ -107,7 +127,7 @@
         android:layout_width="140dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="password"
         android:inputType="textPassword"

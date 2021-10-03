@@ -11,20 +11,12 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    var AVATARS_CHILD = "avatars/"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         startService(Intent(applicationContext, LocationService::class.java))
-
-        FirebaseStorage.getInstance().reference
-            .child(AVATARS_CHILD + Firebase.auth.uid)
-            .downloadUrl
-            .addOnSuccessListener{
-                Glide.with(this).load(it.toString()).into(main_avatar_img)
-            }
 
         main_leaderboard_btn.setOnClickListener{
             intent = Intent(this, LeaderboardActivity::class.java)
