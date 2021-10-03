@@ -383,6 +383,7 @@ class MapActivity : AppCompatActivity() {
                                 value["enemyId"] as String,
                                 value["latitude"] as Double,
                                 value["longitude"] as Double,
+                                null,
                                 null
                             )
                         }
