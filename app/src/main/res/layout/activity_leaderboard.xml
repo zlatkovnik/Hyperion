@@ -6,12 +6,68 @@
     android:layout_height="match_parent"
     tools:context=".LeaderboardActivity">
 
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/frostmourne" />
+
+    <LinearLayout
+        android:id="@+id/leaderboard_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="91dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:text="Rank"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Name"
+            android:textStyle="bold"
+            android:textSize="30dp"
+            android:textColor="@color/white"/>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Power"
+            android:textAlignment="viewEnd"
+            android:textStyle="bold"
+            android:textSize="30dp"
+            android:textColor="@color/gold"/>
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:alpha="0.2"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/leaderboard_rv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/leaderboard_user"/>
+        app:layout_constraintTop_toBottomOf="@+id/leaderboard_container"
+        tools:listitem="@layout/leaderboard_user" />
 </androidx.constraintlayout.widget.ConstraintLayout>

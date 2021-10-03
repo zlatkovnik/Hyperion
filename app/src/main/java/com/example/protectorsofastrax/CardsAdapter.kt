@@ -1,9 +1,6 @@
 package com.example.protectorsofastrax
 
 
-
-import android.app.Activity
-import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -14,19 +11,20 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.Card
 import com.google.firebase.storage.FirebaseStorage
 import java.net.HttpURLConnection
 import java.net.URL
 
 
-class CardsAdapter( private val cards: ArrayList<Card>,private val select:Boolean) :
+class CardsAdapter(private val cards: ArrayList<Card>, private val select: Boolean) :
     RecyclerView.Adapter<CardsAdapter.ViewHolder>() {
 
-    lateinit private var  context: Context
+    lateinit private var context: Context
+
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
@@ -43,11 +41,11 @@ class CardsAdapter( private val cards: ArrayList<Card>,private val select:Boolea
 
         init {
             // Define click listener for the ViewHolder's View.
-            heroImage=view.findViewById(R.id.card_hero_img)
+            heroImage = view.findViewById(R.id.card_hero_img)
             heroName = view.findViewById(R.id.card_heroName_txt)
             classImage = view.findViewById(R.id.card_class_img)
             heroPower = view.findViewById(R.id.card_power_txt)
-            cardselected=view.findViewById(R.id.card_select_btn)
+            cardselected = view.findViewById(R.id.card_select_btn)
         }
     }
 
@@ -67,16 +65,14 @@ class CardsAdapter( private val cards: ArrayList<Card>,private val select:Boolea
         // contents of the view with that element
 //        viewHolder.textView.text = dataSet[position]
 //        val item = dataSet.get(holder.absoluteAdapterPosition)
-        val item= cards[viewHolder.adapterPosition] as Int
+//        val item= cards[viewHolder.adapterPosition] as Int
         FirebaseStorage.getInstance().reference
             .child("cards/" + cards[position].picture)
             .downloadUrl
             .addOnSuccessListener { uri ->
-                val connection: HttpURLConnection =
-                    URL(uri.toString()).openConnection() as HttpURLConnection
-                connection.connect()
-                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
-                viewHolder.heroImage.setImageBitmap(x)
+                Glide.with(context)
+                    .load(uri)
+                    .into(viewHolder.heroImage)
             }
 
         FirebaseStorage.getInstance().reference
@@ -92,18 +88,17 @@ class CardsAdapter( private val cards: ArrayList<Card>,private val select:Boolea
 
         viewHolder.heroName.text = cards[position].name
         viewHolder.heroPower.text = cards[position].power.toString()
-        context=viewHolder.cardselected.context
-        if(select)
-        {
-            viewHolder.cardselected.isEnabled=true
-            viewHolder.cardselected.visibility=View.VISIBLE
+        context = viewHolder.cardselected.context
+        if (select) {
+            viewHolder.cardselected.isEnabled = true
+            viewHolder.cardselected.visibility = View.VISIBLE
             viewHolder.cardselected.setOnClickListener {
-            val inte=Intent(context,MyCardsActivity::class.java)
-                inte.putExtra("selected",cards[position].id)
+                val intent = Intent("select-card")
+                intent.putExtra("card_id", cards[position].id)
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
             }
         }
     }
-
 
 
     // Return the size of your dataset (invoked by the layout manager)

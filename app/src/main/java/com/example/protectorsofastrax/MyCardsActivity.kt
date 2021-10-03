@@ -1,10 +1,15 @@
 package com.example.protectorsofastrax
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.StrictMode
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.protectorsofastrax.data.Card
@@ -68,8 +73,17 @@ class MyCardsActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
             }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, IntentFilter("select-card"));
+    }
 
 
+    private var mMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            val cardId = intent.getStringExtra("card_id")
+            Toast.makeText(this@MyCardsActivity, cardId, Toast.LENGTH_LONG).show()
+            //Rokas server
+            finish()
+        }
     }
 
     fun drawCards(cards: ArrayList<Card>,selected:Boolean){
