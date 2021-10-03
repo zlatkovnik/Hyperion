@@ -23,12 +23,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.UserLocation
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.maps.android.SphericalUtil
 import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,11 +54,15 @@ class MapActivity : AppCompatActivity() {
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
-    private var userLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
-    private var battleLocations: HashMap<String, BattleLocation> =
-        HashMap<String, BattleLocation>();
+    private var userLocations: HashMap<String, UserLocation> = HashMap()
+    private var battleLocations: HashMap<String, BattleLocation> = HashMap();
 
     private var myCircle: Polygon? = null
+
+    private var showBattles = true
+    private var showFriendsOnly = false
+    private var showLocalOnly = false
+    private var cachedLocation: GeoPoint? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -96,6 +102,43 @@ class MapActivity : AppCompatActivity() {
             finish()
         }
 
+        map_battle_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            showBattles = isChecked
+            battleLocations.forEach { (key, value) ->
+                value.marker!!.setVisible(isChecked)
+            }
+        }
+
+        map_local_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            showLocalOnly = isChecked
+            userLocations.forEach { (key, value) ->
+                if(!isChecked){
+                    value.marker!!.setVisible(true)
+                } else {
+                    val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
+                    val userLocation = LatLng(value.latitude, value.longitude)
+                    val distance = SphericalUtil.computeDistanceBetween(myLocation, userLocation)
+                    if(distance < 500.0){
+                        value.marker!!.setVisible(true)
+                    } else {
+                        value.marker!!.setVisible(false)
+                    }
+                }
+            }
+        }
+
+        map_friends_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+            showFriendsOnly = isChecked
+            if(isChecked){
+                userLocations.forEach { (key, value) ->
+                    value!!.marker!!.setVisible(value.isFriend)
+                }
+            } else {
+                userLocations.forEach { (key, value) ->
+                    value!!.marker!!.setVisible(true)
+                }
+            }
+        }
 
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -121,25 +164,24 @@ class MapActivity : AppCompatActivity() {
 
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-//            FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
-//                .setValue(GeoPoint(location.latitude, location.longitude))
+            cachedLocation = GeoPoint(location.latitude, location.longitude)
             if (myCircle == null) {
                 myCircle = Polygon(map)
             } else {
                 map!!.overlays.remove(myCircle)
             }
             val radius = 500.0
-            val circlePoints = ArrayList<GeoPoint>();
+            val circlePoints = ArrayList<GeoPoint>()
             for (i in 0..360) {
                 circlePoints.add(
                     GeoPoint(location.latitude, location.longitude).destinationPoint(
                         radius,
                         i.toDouble()
                     )
-                );
+                )
             }
-            myCircle!!.points = circlePoints;
-            map!!.overlays.add(myCircle);
+            myCircle!!.points = circlePoints
+            map!!.overlays.add(myCircle)
         }
 
         override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
@@ -286,12 +328,27 @@ class MapActivity : AppCompatActivity() {
                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                             map!!.overlays.add(marker)
                             user?.marker = marker
+                            if(showFriendsOnly){
+                                user!!.marker!!.setVisible(false)
+                            } else {
+                                user!!.marker!!.setVisible(true)
+                            }
                         }
                         user?.latitude = value["latitude"]!!
                         user?.longitude = value["longitude"]!!
                         user?.marker?.position = GeoPoint(user!!.latitude, user!!.longitude)
-                    }
 
+                        if(showLocalOnly){
+                            val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
+                            val userLocation = LatLng(user!!.latitude, user!!.longitude)
+                            val distance = SphericalUtil.computeDistanceBetween(myLocation, userLocation)
+                            if(distance < 500.0){
+                                user.marker!!.setVisible(true)
+                            } else {
+                                user.marker!!.setVisible(false)
+                            }
+                        }
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -341,6 +398,11 @@ class MapActivity : AppCompatActivity() {
                         }
                         location?.marker!!.position =
                             GeoPoint(location!!.latitude, location!!.longitude)
+                        if(!showBattles){
+                            location?.marker!!.setVisible(false)
+                        } else {
+                            location?.marker!!.setVisible(true)
+                        }
                     }
                 }
 
