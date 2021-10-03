@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -78,9 +79,24 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
         prof_back_btn.setOnClickListener {
-            finish()
+            if(isTaskRoot){
+                val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+                startActivity(intent)
+            } else {
+                finish()
+            }
         }
 
+    }
+
+    override fun onBackPressed() {
+//        super.onBackPressed()
+        if(isTaskRoot){
+            val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+            startActivity(intent)
+        } else {
+            finish()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
