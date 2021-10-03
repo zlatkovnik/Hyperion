@@ -1,7 +1,6 @@
 package com.example.protectorsofastrax
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,8 +31,6 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.maps.android.SphericalUtil
 import kotlinx.android.synthetic.main.activity_map.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -63,6 +60,10 @@ class MapActivity : AppCompatActivity() {
     private var showFriendsOnly = false
     private var showLocalOnly = false
     private var cachedLocation: GeoPoint? = null
+
+    private var usersListener: ValueEventListener? = null
+    private var battlesListener: ValueEventListener? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -271,7 +272,7 @@ class MapActivity : AppCompatActivity() {
                     }
             }
 
-        FirebaseDatabase.getInstance().reference.child("users")
+        usersListener = FirebaseDatabase.getInstance().reference.child("users")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.value == null) {
@@ -357,7 +358,7 @@ class MapActivity : AppCompatActivity() {
     }
 
     private fun setupBattlesOnMap() {
-        FirebaseDatabase.getInstance().reference.child("battles")
+        battlesListener = FirebaseDatabase.getInstance().reference.child("battles")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.value == null) {
@@ -419,5 +420,15 @@ class MapActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         map!!.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if(usersListener != null)
+            FirebaseDatabase.getInstance().reference.removeEventListener(usersListener!!)
+        if(battlesListener != null)
+            FirebaseDatabase.getInstance().reference.removeEventListener(battlesListener!!)
+        if(locationManager != null)
+            locationManager!!.removeUpdates(locationListener)
     }
 }
