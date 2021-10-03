@@ -47,15 +47,14 @@ import java.net.URL
 
 class MapActivity : AppCompatActivity() {
     var map: MapView? = null
-    var FIREBASE_CHILD = "users"
-    var FIREBASE_BATTLES="battles"
-    val MY_PERMISSIONS_REQUEST_LOCATION = 99
+    private val MY_PERMISSIONS_REQUEST_LOCATION = 99
 
     var user = Firebase.auth.currentUser as FirebaseUser
     private var locationManager: LocationManager? = null
 
     private var userLocations: HashMap<String, UserLocation> = HashMap<String, UserLocation>()
-    private var battleLocations: ArrayList<BattleLocation> = ArrayList<BattleLocation>();
+    private var battleLocations: HashMap<String, BattleLocation> =
+        HashMap<String, BattleLocation>();
 
     private var myCircle: Polygon? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,74 +107,36 @@ class MapActivity : AppCompatActivity() {
         ) {
             requestLocationPermission()
         } else {
-            FirebaseFirestore.getInstance().collection("users").get()
-                .addOnSuccessListener { allUsers ->
-                    var users: ArrayList<String> = ArrayList();
-                    allUsers.forEach {
-                        users.add(it.id)
-                    }
-                    FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
-                        .addOnSuccessListener { allFriends ->
-                            var friends: List<String> = allFriends.data!!["friends"] as List<String>
-                            users.forEach { id ->
-                                var isFriend = false
-                                if (friends.contains(id)) {
-                                    isFriend = true
-                                }
-                                userLocations[id] = UserLocation(id, 0.0, 0.0, isFriend, null)
-                            }
-                            setupMap()
-                        }
-                }
-
-
-            FirebaseDatabase.getInstance().reference.child(FIREBASE_BATTLES).get()
-                .addOnSuccessListener { it ->
-                    it.children.forEach{
-                        var battles=it.value as  HashMap<String, BattleLocation>
-                        battleLocations.add(BattleLocation(it.key as String,battles["enemyId"] as String,battles["latitude"] as Double, battles["longitude"] as Double, null))
-                    }
-                    setupMap()
-                }
-                .addOnFailureListener{
-                    val toast =
-                        Toast.makeText(applicationContext, "Hello Javatpoint", Toast.LENGTH_SHORT)
-                }
-//                .addValueEventListener(object : ValueEventListener {
-//                    override fun onDataChange(snapshot: DataSnapshot){
-//                        if (snapshot.value == null) {
-//                            return
-//                        }
-//                     val battles:ArrayList<String> = snapshot.value as ArrayList<String>
-//                    }
-//
-//                    override fun onCancelled(error: DatabaseError) {
-//                        TODO("Not yet implemented")
-//                    }
-//                })}
-//                    battles?.forEach{
-//                        var enemyID=it["enemyId"] as String
-//                        var latitude=it["latitude"] as Double
-//                        var longitude= it["longitude"] as Double
-//
-//                        battleLocations.add(BattleLocation(it.id,enemyID,latitude,longitude,null))
-//
+            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?
+            locationManager?.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER,
+                0L,
+                0f,
+                locationListener
+            )
+            setupUsersOnMap()
+            setupBattlesOnMap()
         }
     }
+
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
-                .setValue(GeoPoint(location.latitude, location.longitude))
-            setupMap()
-            if(myCircle == null){
+//            FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(user.uid)
+//                .setValue(GeoPoint(location.latitude, location.longitude))
+            if (myCircle == null) {
                 myCircle = Polygon(map)
             } else {
                 map!!.overlays.remove(myCircle)
             }
             val radius = 500.0
             val circlePoints = ArrayList<GeoPoint>();
-            for (i in 0..360){
-                circlePoints.add(GeoPoint(location.latitude , location.longitude ).destinationPoint(radius, i.toDouble()));
+            for (i in 0..360) {
+                circlePoints.add(
+                    GeoPoint(location.latitude, location.longitude).destinationPoint(
+                        radius,
+                        i.toDouble()
+                    )
+                );
             }
             myCircle!!.points = circlePoints;
             map!!.overlays.add(myCircle);
@@ -201,7 +162,15 @@ class MapActivity : AppCompatActivity() {
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        setupMap()
+                        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?
+                        locationManager?.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER,
+                            0L,
+                            0f,
+                            locationListener
+                        )
+                        setupUsersOnMap()
+                        setupBattlesOnMap()
                     }
 
                 } else {
@@ -232,119 +201,152 @@ class MapActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun setupMap() {
-        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager?
-        locationManager?.requestLocationUpdates(
-            LocationManager.NETWORK_PROVIDER,
-            0L,
-            0f,
-            locationListener
-        )
-
-        GlobalScope.launch {
-            userLocations.forEach {
-                FirebaseDatabase.getInstance().reference.child(FIREBASE_CHILD).child(it.key)
-                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            if (snapshot.value == null) {
-                                return
+    private fun setupUsersOnMap() {
+        FirebaseFirestore.getInstance().collection("users").get()
+            .addOnSuccessListener { snapshot ->
+                val allUsers = snapshot.documents
+                var users: ArrayList<String> = ArrayList();
+                allUsers.forEach {
+                    users.add(it.id)
+                }
+                FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
+                    .addOnSuccessListener { allFriends ->
+                        var friends: List<String> = allFriends.data!!["friends"] as List<String>
+                        users.forEach { id ->
+                            var isFriend = false
+                            if (friends.contains(id)) {
+                                isFriend = true
                             }
-                            val location: HashMap<String, Double> =
-                                snapshot.value as HashMap<String, Double>
-                            val user = userLocations[it.key]
-                            if (user?.marker == null && user!!.isFriend) {
-                                FirebaseStorage.getInstance().reference
-                                    .child("avatars/" + it.key)
-                                    .downloadUrl
-                                    .addOnSuccessListener { url ->
-                                        val connection: HttpURLConnection =
-                                            URL(url.toString()).openConnection() as HttpURLConnection
-                                        connection.connect()
-                                        val input: InputStream = connection.inputStream
-
-                                        val x = BitmapFactory.decodeStream(input)
-
-                                        val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
-
-                                        val marker = Marker(map)
-                                        marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
-                                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                                        marker.icon = drawable
-                                        map!!.overlays.add(marker)
-                                        user?.marker = marker
-                                        marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
-
-                                            intent= Intent(this@MapActivity, ProfileActivity::class.java)
-                                            intent.putExtra("user_id", user?.uid)
-                                            startActivity(intent)
-                                            return@OnMarkerClickListener true
-                                        })
-                                    }
+                            if(userLocations[id] != null){
+                                map!!.overlays.remove(userLocations[id]!!.marker)
+                                userLocations[id]!!.isFriend = isFriend
+                                userLocations[id]!!.marker = null
                             }
-                            if (user?.marker == null && !user!!.isFriend) {
-                                val marker = Marker(map)
-                                marker.position = GeoPoint(location["latitude"]!!, location["longitude"]!!)
-                                marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                                map!!.overlays.add(marker)
-                                user?.marker = marker
+                            else{
+                                userLocations[id] = UserLocation(id, 0.0, 0.0, isFriend, null)
                             }
-                            user?.latitude = location["latitude"]!!
-                            user?.longitude = location["longitude"]!!
-                            user?.marker?.position = GeoPoint(user!!.latitude, user!!.longitude)
                         }
-
-                        override fun onCancelled(error: DatabaseError) {
-                            TODO("Not yet implemented")
-                        }
-                    })
-            }
-            battleLocations.forEach{
-                if(it?.marker==null)
-                {
-//                        FirebaseStorage.getInstance().reference
-//                            .child("battles/" + "borba.png")
-//                            .downloadUrl
-//                            .addOnSuccessListener { url->
-//                                val connection: HttpURLConnection =
-//                                    URL(url.toString()).openConnection() as HttpURLConnection
-//                                connection.connect()
-//                                val input: InputStream = connection.inputStream
-//                                val x = BitmapFactory.decodeStream(input)
-////
-//                                val battleMarker = (com.example.protectorsofastrax.R.drawable.borba)
-//                                val drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(x, 100,  100 * x.height / x.width, true))
-
-
-                                val marker=Marker(map)
-                                marker.icon=getDrawable(R.drawable.borba)
-                                marker.position= GeoPoint(it.latitude,it.longitude)
-                                marker.setAnchor(Marker.ANCHOR_TOP,Marker.ANCHOR_LEFT)
-                                map!!.overlays.add(marker)
-                                it.marker=marker
-                                marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
-
-                                  intent= Intent(this@MapActivity, BattleActivity::class.java)
-                                  intent.putExtra("battle_id", it.uid)
-                                  intent.putExtra("enemyID",it.enemyId)
-                                  startActivity(intent)
-                                   return@OnMarkerClickListener true
-                                 })
-                    }else {
-                        val marker = Marker(map)
-                        marker.position = GeoPoint(it.latitude!!, it.longitude!!)
-                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                        map!!.overlays.add(marker)
-                        it.marker = marker
                     }
-                it?.marker!!.position= GeoPoint(it!!.latitude,it!!.longitude)
             }
 
-        }
+        FirebaseDatabase.getInstance().reference.child("users")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.value == null) {
+                        return
+                    }
+                    val locations = snapshot.value as HashMap<String, HashMap<String, Double>>
+                    locations.forEach { (key, value) ->
+                        var user = userLocations[key]
+                        if(user == null){
+                            userLocations[key] = UserLocation(key, value["latitude"]!!, value["longitude"]!!, false, null)
+                            user = userLocations[key]
+                        }
+                        if (user?.marker == null && user!!.isFriend) {
+                            FirebaseStorage.getInstance().reference
+                                .child("avatars/$key")
+                                .downloadUrl
+                                .addOnSuccessListener { url ->
+                                    val connection: HttpURLConnection =
+                                        URL(url.toString()).openConnection() as HttpURLConnection
+                                    connection.connect()
+                                    val input: InputStream = connection.inputStream
+
+                                    val x = BitmapFactory.decodeStream(input)
+
+                                    val drawable = BitmapDrawable(
+                                        resources,
+                                        Bitmap.createScaledBitmap(
+                                            x,
+                                            100,
+                                            100 * x.height / x.width,
+                                            true
+                                        )
+                                    )
+
+                                    val marker = Marker(map)
+                                    marker.position =
+                                        GeoPoint(value["latitude"]!!, value["longitude"]!!)
+                                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                    marker.icon = drawable
+                                    map!!.overlays.add(marker)
+                                    user?.marker = marker
+                                    marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+                                        intent =
+                                            Intent(this@MapActivity, ProfileActivity::class.java)
+                                        intent.putExtra("user_id", user?.uid)
+                                        startActivity(intent)
+                                        return@OnMarkerClickListener true
+                                    })
+                                }
+                        }
+                        if (user?.marker == null && !user!!.isFriend) {
+                            val marker = Marker(map)
+                            marker.position = GeoPoint(value["latitude"]!!, value["longitude"]!!)
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            map!!.overlays.add(marker)
+                            user?.marker = marker
+                        }
+                        user?.latitude = value["latitude"]!!
+                        user?.longitude = value["longitude"]!!
+                        user?.marker?.position = GeoPoint(user!!.latitude, user!!.longitude)
+                    }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
     }
 
-    fun findFriends() {
+    private fun setupBattlesOnMap() {
+        FirebaseDatabase.getInstance().reference.child("battles")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.value == null) {
+                        return
+                    }
+                    val locations = snapshot.value as HashMap<String, HashMap<String, Any>>
+                    locations.forEach { (key, value) ->
+                        if (battleLocations[key] == null) {
+                            battleLocations[key] = BattleLocation(
+                                key,
+                                value["enemyId"] as String,
+                                value["latitude"] as Double,
+                                value["longitude"] as Double,
+                                null
+                            )
+                        }
+                        val location = battleLocations[key]
+                        if (location?.marker == null) {
+                            val marker = Marker(map)
+                            marker.icon = getDrawable(R.drawable.borba)
+                            marker.position = GeoPoint(location!!.latitude, location!!.longitude)
+                            marker.setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_LEFT)
+                            map!!.overlays.add(marker)
+                            location!!.marker = marker
+                            marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+                                intent = Intent(this@MapActivity, BattleActivity::class.java)
+                                intent.putExtra("battle_id", location.uid)
+                                intent.putExtra("enemyID", location.enemyId)
+                                startActivity(intent)
+                                return@OnMarkerClickListener true
+                            })
+                        } else {
+                            val marker = Marker(map)
+                            marker.position = GeoPoint(location.latitude!!, location.longitude!!)
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            map!!.overlays.add(marker)
+                            location.marker = marker
+                        }
+                        location?.marker!!.position =
+                            GeoPoint(location!!.latitude, location!!.longitude)
+                    }
+                }
 
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
     }
 
     override fun onResume() {
