@@ -11,6 +11,8 @@ import com.example.protectorsofastrax.data.Card
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import kotlinx.android.synthetic.main.activity_my_cards.*
+import kotlinx.android.synthetic.main.card.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -63,6 +65,14 @@ class MyCardsActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
+            }
+            val select=intent.getBooleanExtra("select", false)
+            var  nesto = "0"
+            if(select)
+            {
+                card_hero_img.onBindViewHolder{
+
+                }
             }
 
     }

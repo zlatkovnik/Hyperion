@@ -91,6 +91,7 @@ class CardsAdapter( private val cards: ArrayList<Card>) :
 
         viewHolder.heroName.text = cards[position].name
         viewHolder.heroPower.text = cards[position].power.toString()
+
     }
 
     // Return the size of your dataset (invoked by the layout manager)
