@@ -28,7 +28,7 @@ class BattleActivity : AppCompatActivity() {
         fun drawCards(cards: ArrayList<Card>){
             val rvContacts = findViewById<View>(com.example.protectorsofastrax.R.id.battle_cards_rw) as RecyclerView
 
-            val adapter = CardsAdapter(cards)
+            val adapter = CardsAdapter(cards,false)
             // Attach the adapter to the recyclerview to populate items
             rvContacts.adapter = adapter
             // Set layout manager to position the items

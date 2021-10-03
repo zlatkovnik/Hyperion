@@ -36,9 +36,10 @@ class MyCardsActivity : AppCompatActivity() {
         StrictMode.setThreadPolicy(policy)
 
 
+
         // Initialize contacts
 
-
+        val select=intent.getBooleanExtra("select", false)
         val user_id = intent.getStringExtra("user_id")
         val cards : ArrayList<Card> = ArrayList<Card>()
         firestore.collection("users").document(user_id!!).get()
@@ -58,7 +59,8 @@ class MyCardsActivity : AppCompatActivity() {
                         cards.add(Card(it.id, picture, name, clas, power, race))
                     }
                     this@MyCardsActivity.runOnUiThread(Runnable {
-                        drawCards(cards)
+                        drawCards(cards,select)
+
                     })
 //                    drawCards(cards)
                 }
@@ -66,21 +68,14 @@ class MyCardsActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
             }
-            val select=intent.getBooleanExtra("select", false)
-            var  nesto = "0"
-            if(select)
-            {
-                card_hero_img.onBindViewHolder{
 
-                }
-            }
 
     }
 
-    fun drawCards(cards: ArrayList<Card>){
+    fun drawCards(cards: ArrayList<Card>,selected:Boolean){
         val rvContacts = findViewById<View>(R.id.rcview) as RecyclerView
 
-        val adapter = CardsAdapter(cards)
+        val adapter = CardsAdapter(cards,selected)
         // Attach the adapter to the recyclerview to populate items
         rvContacts.adapter = adapter
         // Set layout manager to position the items
