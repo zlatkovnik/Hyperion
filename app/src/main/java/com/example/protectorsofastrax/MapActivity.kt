@@ -377,7 +377,7 @@ class MapActivity : AppCompatActivity() {
                         val location = battleLocations[key]
                         if (location?.marker == null) {
                             val marker = Marker(map)
-                            marker.icon = getDrawable(R.drawable.borba)
+                            marker.icon = getDrawable(R.drawable.sword_notif_icon)
                             marker.position = GeoPoint(location!!.latitude, location!!.longitude)
                             marker.setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_LEFT)
                             map!!.overlays.add(marker)
