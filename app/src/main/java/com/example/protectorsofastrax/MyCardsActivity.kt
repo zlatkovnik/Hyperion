@@ -1,5 +1,6 @@
 package com.example.protectorsofastrax
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,14 +16,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.protectorsofastrax.data.Card
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
 import kotlinx.android.synthetic.main.activity_my_cards.*
 import kotlinx.android.synthetic.main.card.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.asDeferred
-import kotlinx.coroutines.tasks.await
 
 
 class MyCardsActivity : AppCompatActivity() {
@@ -82,6 +81,9 @@ class MyCardsActivity : AppCompatActivity() {
             val cardId = intent.getStringExtra("card_id")
             Toast.makeText(this@MyCardsActivity, cardId, Toast.LENGTH_LONG).show()
             //Rokas server
+            val returnIntent = Intent()
+            returnIntent.putExtra("selected", cardId)
+            setResult(Activity.RESULT_OK, returnIntent)
             finish()
         }
     }

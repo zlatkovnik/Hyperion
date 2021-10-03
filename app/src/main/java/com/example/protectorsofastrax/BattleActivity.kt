@@ -1,14 +1,11 @@
 package com.example.protectorsofastrax
 
-import android.content.BroadcastReceiver
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -83,4 +80,20 @@ class BattleActivity : AppCompatActivity() {
             startActivityForResult(i,200)
         }
     }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 200) {
+            if (resultCode ==  Activity.RESULT_OK) {
+                val result =data!!.getStringExtra("selected");
+                Toast.makeText(this@BattleActivity, result+"Familijooo", Toast.LENGTH_LONG).show()
+            }
+            if (resultCode == RESULT_CANCELED) {
+                // Write your code if there's no result
+                Toast.makeText(this@BattleActivity, "nece ne znam sto", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
 }
