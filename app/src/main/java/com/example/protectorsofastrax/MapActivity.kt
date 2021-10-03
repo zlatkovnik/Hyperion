@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -20,6 +21,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.UserLocation
 import com.google.android.gms.maps.model.LatLng
@@ -290,28 +295,34 @@ class MapActivity : AppCompatActivity() {
                                 .child("avatars/$key")
                                 .downloadUrl
                                 .addOnSuccessListener { url ->
-                                    val connection: HttpURLConnection =
-                                        URL(url.toString()).openConnection() as HttpURLConnection
-                                    connection.connect()
-                                    val input: InputStream = connection.inputStream
-
-                                    val x = BitmapFactory.decodeStream(input)
-
-                                    val drawable = BitmapDrawable(
-                                        resources,
-                                        Bitmap.createScaledBitmap(
-                                            x,
-                                            100,
-                                            100 * x.height / x.width,
-                                            true
-                                        )
-                                    )
-
                                     val marker = Marker(map)
                                     marker.position =
                                         GeoPoint(value["latitude"]!!, value["longitude"]!!)
                                     marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                                    marker.icon = drawable
+                                    val options: RequestOptions = RequestOptions()
+                                        .centerCrop()
+                                        .placeholder(android.R.mipmap.sym_def_app_icon)
+                                        .error(android.R.mipmap.sym_def_app_icon)
+
+                                    Glide.with(this@MapActivity)
+                                        .asBitmap()
+                                        .load(url)
+                                        .apply(options)
+                                        .into(object: CustomTarget<Bitmap>() {
+                                            override fun onResourceReady(
+                                                bmp: Bitmap,
+                                                transition: Transition<in Bitmap>?
+                                            ) {
+                                                val d: Drawable = BitmapDrawable(resources, Bitmap.createScaledBitmap(
+                                                    bmp,
+                                                    100,
+                                                    100 * bmp.height / bmp.width,
+                                                    true
+                                                ))
+                                                marker.icon = d
+                                            }
+                                            override fun onLoadCleared(placeholder: Drawable?) { }
+                                        });
                                     map!!.overlays.add(marker)
                                     user?.marker = marker
                                     marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->

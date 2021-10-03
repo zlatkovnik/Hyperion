@@ -20,19 +20,31 @@
         android:id="@+id/main_maps_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="28dp"
-        android:text="Battle now!"
+        android:layout_marginBottom="20dp"
+        android:drawableEnd="@drawable/sword_notif_icon"
+        android:text="Battle"
         app:layout_constraintBottom_toTopOf="@+id/main_myCards_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/main_myCards_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="84dp"
+        android:layout_marginBottom="20dp"
+        android:drawableEnd="@drawable/ic_card_pick"
         android:text="My cards"
+        app:layout_constraintBottom_toTopOf="@+id/main_add_friends_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/main_add_friends_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:drawableEnd="@drawable/ic_baseline_bluetooth_audio_24"
+        android:text="Find friends"
         app:layout_constraintBottom_toTopOf="@+id/main_logout_btn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

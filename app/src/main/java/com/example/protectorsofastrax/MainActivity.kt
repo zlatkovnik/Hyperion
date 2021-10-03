@@ -18,18 +18,18 @@ class MainActivity : AppCompatActivity() {
 
         startService(Intent(applicationContext, LocationService::class.java))
 
-        main_leaderboard_btn.setOnClickListener{
+        main_leaderboard_btn.setOnClickListener {
             intent = Intent(this, LeaderboardActivity::class.java)
             startActivity(intent)
         }
 
         main_profile_btn.setOnClickListener {
-            intent= Intent(this,ProfileActivity::class.java)
+            intent = Intent(this, ProfileActivity::class.java)
             intent.putExtra("user_id", Firebase.auth.uid)
             startActivity(intent)
         }
         main_maps_btn.setOnClickListener {
-            intent= Intent(this,MapActivity::class.java)
+            intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
         }
 
@@ -39,13 +39,15 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         main_myCards_btn.setOnClickListener {
-            intent= Intent(this, MyCardsActivity::class.java)
+            intent = Intent(this, MyCardsActivity::class.java)
             intent.putExtra("user_id", Firebase.auth.uid)
             startActivity(intent)
         }
 
-//        intent = Intent(this, AddFriendsActivity::class.java)
-//        startActivity(intent)
+        main_add_friends_btn.setOnClickListener {
+            intent = Intent(this, AddFriendsActivity::class.java)
+            startActivity(intent)
+        }
 
     }
 }
