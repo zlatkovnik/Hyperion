@@ -16,10 +16,15 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_battle.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.asDeferred
 
 
 class BattleActivity : AppCompatActivity() {
@@ -27,13 +32,15 @@ class BattleActivity : AppCompatActivity() {
     var ENEMIES_CHILD = "enemies/"
     lateinit var battleId: String
     var listener: ValueEventListener? = null
+    var lis: ValueEventListener? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(com.example.protectorsofastrax.R.layout.activity_battle)
 
         val enemyId =intent.getStringExtra("enemyID")as String
         battleId = intent.getStringExtra("battle_id")!!
-        val enemies: ArrayList<Card> = ArrayList<Card>()
+//        val cardsInBattle: ArrayList<Card> = ArrayList<Card>()
+//        var cardsIdInBattle:ArrayList<String> = ArrayList<String>()
 
         fun drawCards(cards: ArrayList<Card>){
             val rvContacts = findViewById<View>(com.example.protectorsofastrax.R.id.battle_cards_rw) as RecyclerView
@@ -66,19 +73,64 @@ class BattleActivity : AppCompatActivity() {
                     Glide.with(this).load(it.toString()).into(battle_enemy_img)
                 }
         }
-        FirebaseFirestore.getInstance().collection("cards").get()
-            .addOnSuccessListener { it->
-                it.forEach {
-                    var name = it["name"] as String
-                    var picture = it["picture"] as String
-                    var race = it["race"] as String
-                    var clas = it["clas"] as String
-                    var power = it["power"] as Long
-                    enemies.add(Card(it.id, picture, name, clas, power, race))
+//
+
+        lis= FirebaseDatabase.getInstance().reference.child("battles").child(battleId)
+            .addValueEventListener(object: ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val battle = snapshot.value as HashMap<String, Any>
+                    var userCard = battle["userCardMap"] as HashMap<String, String>?
+                    val cardsIdInBattle=ArrayList<String>()
+                    val cardsInBattle=ArrayList<Card>()
+                    if (userCard != null) {
+                        userCard.forEach { it ->
+                            cardsIdInBattle.add(it.value)
+                        }
+                         var requests = cardsIdInBattle.map {  cid ->
+                    FirebaseFirestore.getInstance().collection("cards").document(cid).get().asDeferred()
+                    }
+                        GlobalScope.launch {
+                            val results: ArrayList<DocumentSnapshot> = requests.awaitAll() as ArrayList<DocumentSnapshot>
+                            results.forEach{
+                                var name = it["name"] as String
+                                var picture = it["picture"] as String
+                                var race = it["race"] as String
+                                var clas = it["clas"] as String
+                                var power = it["power"] as Long
+                                cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
+                            }
+                            this@BattleActivity.runOnUiThread(Runnable {
+                                drawCards(cardsInBattle)
+                            })
+                        }
+                  }
+
+//                    for (s in cardsIdInBattle) {
+//                        FirebaseFirestore.getInstance().collection("cards").document(s as String).get()
+//                            .addOnSuccessListener { it ->
+//                                var name = it["name"] as String
+//                                var picture = it["picture"] as String
+//                                var race = it["race"] as String
+//                                var clas = it["clas"] as String
+//                                var power = it["power"] as Long
+//                                cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
+
+//
+//                            }
+//                    }
+//                    this@BattleActivity.runOnUiThread(Runnable {
+//                        drawCards(cardsInBattle)
+//                    })
+
                 }
-                this@BattleActivity.runOnUiThread(Runnable {
-                    drawCards(enemies)})
-            }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+            })
+
+
+
 
 
         battle_addcard_btn.setOnClickListener {
@@ -102,11 +154,15 @@ class BattleActivity : AppCompatActivity() {
                             val latitude = battle["latitude"] as Double
                             val longitude = battle["longitude"] as Double
                             val enemyId = battle["enemyId"] as String
-                            var userCard = battle["userCard"] as HashMap<String, String>?
+                            var userCard = battle["userCardMap"] as HashMap<String, String>?
+
                             if(userCard == null){
                                 userCard = HashMap()
                             }
-                            userCard[Firebase.auth.uid.toString()] = cardId
+                            if(userCard.get(Firebase.auth.uid.toString())== null){
+                                userCard.put(Firebase.auth.uid.toString(),cardId)
+                            }
+
                             val battleLocation = BattleLocation(battleId, enemyId, latitude, longitude, null, userCard)
                             FirebaseDatabase.getInstance().reference.child("battles").child(battleId).setValue(battleLocation)
                             FirebaseDatabase.getInstance().reference.removeEventListener(listener!!)
