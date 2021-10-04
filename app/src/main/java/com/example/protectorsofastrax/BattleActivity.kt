@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.Card
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -33,6 +34,7 @@ class BattleActivity : AppCompatActivity() {
     lateinit var battleId: String
     var listener: ValueEventListener? = null
     var lis: ValueEventListener? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(com.example.protectorsofastrax.R.layout.activity_battle)
@@ -105,23 +107,6 @@ class BattleActivity : AppCompatActivity() {
                         }
                   }
 
-//                    for (s in cardsIdInBattle) {
-//                        FirebaseFirestore.getInstance().collection("cards").document(s as String).get()
-//                            .addOnSuccessListener { it ->
-//                                var name = it["name"] as String
-//                                var picture = it["picture"] as String
-//                                var race = it["race"] as String
-//                                var clas = it["clas"] as String
-//                                var power = it["power"] as Long
-//                                cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
-
-//
-//                            }
-//                    }
-//                    this@BattleActivity.runOnUiThread(Runnable {
-//                        drawCards(cardsInBattle)
-//                    })
-
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -131,7 +116,15 @@ class BattleActivity : AppCompatActivity() {
 
 
 
-
+        val userId= Firebase.auth.uid as String
+        if(battleId != userId)
+        {
+            battle_battle_btn.visibility=View.INVISIBLE
+            battle_battle_btn.isEnabled=false
+        }else{
+            battle_addcard_btn.visibility=View.INVISIBLE
+            battle_addcard_btn.isEnabled=false
+        }
 
         battle_addcard_btn.setOnClickListener {
             val i= Intent(this@BattleActivity,MyCardsActivity::class.java)
