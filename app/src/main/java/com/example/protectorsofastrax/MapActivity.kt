@@ -111,7 +111,7 @@ class MapActivity : AppCompatActivity() {
         map_battle_switch.setOnCheckedChangeListener { buttonView, isChecked ->
             showBattles = isChecked
             battleLocations.forEach { (key, value) ->
-                value.marker!!.setVisible(isChecked)
+                value.marker?.setVisible(isChecked)
             }
         }
 
@@ -119,15 +119,17 @@ class MapActivity : AppCompatActivity() {
             showLocalOnly = isChecked
             userLocations.forEach { (key, value) ->
                 if(!isChecked){
-                    value.marker!!.setVisible(true)
+                    value.marker?.setVisible(true)
                 } else {
-                    val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
-                    val userLocation = LatLng(value.latitude, value.longitude)
-                    val distance = SphericalUtil.computeDistanceBetween(myLocation, userLocation)
-                    if(distance < 500.0){
-                        value.marker!!.setVisible(true)
-                    } else {
-                        value.marker!!.setVisible(false)
+                    if(cachedLocation != null){
+                        val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
+                        val userLocation = LatLng(value.latitude, value.longitude)
+                        val distance = SphericalUtil.computeDistanceBetween(myLocation, userLocation)
+                        if(distance < 500.0){
+                            value.marker!!.setVisible(true)
+                        } else {
+                            value.marker!!.setVisible(false)
+                        }
                     }
                 }
             }
@@ -137,11 +139,11 @@ class MapActivity : AppCompatActivity() {
             showFriendsOnly = isChecked
             if(isChecked){
                 userLocations.forEach { (key, value) ->
-                    value!!.marker!!.setVisible(value.isFriend)
+                    value!!.marker?.setVisible(value.isFriend)
                 }
             } else {
                 userLocations.forEach { (key, value) ->
-                    value!!.marker!!.setVisible(true)
+                    value!!.marker?.setVisible(true)
                 }
             }
         }
@@ -334,7 +336,7 @@ class MapActivity : AppCompatActivity() {
                                     })
                                 }
                         }
-                        if (user?.marker == null && !user!!.isFriend) {
+                        if (map != null && user?.marker == null && !user!!.isFriend) {
                             val marker = Marker(map)
                             marker.position = GeoPoint(value["latitude"]!!, value["longitude"]!!)
                             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)

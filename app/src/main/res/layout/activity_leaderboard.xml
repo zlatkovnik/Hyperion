@@ -16,6 +16,12 @@
         android:scaleType="centerCrop"
         android:src="@drawable/frostmourne" />
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:alpha="0.2"/>
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -100,12 +106,6 @@
             android:textSize="30dp"
             android:textStyle="bold" />
     </LinearLayout>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/black"
-        android:alpha="0.2"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/leaderboard_rv"

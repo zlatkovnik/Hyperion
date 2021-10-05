@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.Card
+import com.example.protectorsofastrax.data.User
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -34,6 +35,9 @@ class BattleActivity : AppCompatActivity() {
     lateinit var battleId: String
     var listener: ValueEventListener? = null
     var lis: ValueEventListener? = null
+
+    var cachedOdds: Double = 0.0;
+    var cachedBattleLocation: BattleLocation? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,6 +89,7 @@ class BattleActivity : AppCompatActivity() {
             .addValueEventListener(object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val battle = snapshot.value as HashMap<String, Any>
+                    cachedBattleLocation = BattleLocation(battleId, enemyId, battle["latitude"] as Double, battle["longitude"] as Double, null, battle["userCardMap"] as HashMap<String, String>)
                     var userCard = battle["userCardMap"] as HashMap<String, String>?
                     val cardsIdInBattle=ArrayList<String>()
                     val cardsInBattle=ArrayList<Card>()
@@ -155,10 +160,10 @@ class BattleActivity : AppCompatActivity() {
                                         }
                                     }
                                     totalPower -= (basePower * cardsInBattle.size * cardsInBattle.size * 0.014).toLong()
-                                    var odds = totalPower.toDouble() / enemyPower.toDouble()
-                                    if(odds > 90.0) odds = 90.0
+                                    cachedOdds = totalPower.toDouble() / enemyPower.toDouble()
+                                    if(cachedOdds > 90.0) cachedOdds = 90.0
                                     this@BattleActivity.runOnUiThread(Runnable {
-                                        battle_win_chance_txt.text = (odds * 100).toInt().toString() + "%"
+                                        battle_win_chance_txt.text = (cachedOdds * 100).toInt().toString() + "%"
                                     })
                                 }
                             this@BattleActivity.runOnUiThread(Runnable {
@@ -184,15 +189,13 @@ class BattleActivity : AppCompatActivity() {
         }else{
             battle_addcard_btn.visibility=View.INVISIBLE
             battle_addcard_btn.isEnabled=false
+            battle_battle_btn.setOnClickListener {
+                startBattle()
+            }
         }
 
         battle_back_btn.setOnClickListener {
-            if(isTaskRoot){
-                val intent = Intent(this@BattleActivity, MapActivity::class.java)
-                startActivity(intent)
-            } else {
-                finish()
-            }
+            finish()
         }
 
         battle_addcard_btn.setOnClickListener {
@@ -234,6 +237,32 @@ class BattleActivity : AppCompatActivity() {
                     })
             }
             if (resultCode == RESULT_CANCELED) { }
+        }
+    }
+
+    private fun startBattle(){
+        val rnd = Math.random()
+        if(rnd < cachedOdds){
+            cachedBattleLocation?.userCardMap?.forEach { b ->
+                FirebaseFirestore.getInstance().collection("users").document(b.key).get()
+                    .addOnSuccessListener { snapshot ->
+                        var user = snapshot.toObject(User::class.java)
+                        user!!.experience += (50.0 * Math.random()).toLong()
+                        FirebaseFirestore.getInstance().collection("cards").get()
+                            .addOnSuccessListener { cardsSnapshot ->
+                                val allCardIds = cardsSnapshot.map { ss -> ss.id }
+                                val randomCardId = allCardIds.random()
+                                val newCards = arrayListOf<String>()
+                                newCards.addAll(user!!.cards)
+                                newCards.add(randomCardId)
+                                user!!.cards = newCards
+                                //TODO("NOTIFIKACIJA")
+                                FirebaseFirestore.getInstance().collection("cards").document(snapshot.id).set(user)
+                            }
+                    }
+            }
+        } else {
+
         }
     }
 }

@@ -87,7 +87,7 @@ class RegisterActivity : AppCompatActivity() {
                                     .putFile(avatarUri as Uri)
 
                                 val user =
-                                    User(firebaseUser.uid, email, username, name, surname, phone, 100.0f);
+                                    User(firebaseUser.uid, email, username, name, surname, phone, 100.0);
 
                                 FirebaseFirestore.getInstance().collection("users")
                                     .document(user.id).set(user).addOnSuccessListener {
