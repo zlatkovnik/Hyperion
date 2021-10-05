@@ -7,6 +7,7 @@
     tools:context=".LeaderboardActivity">
 
 
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
@@ -15,13 +16,58 @@
         android:scaleType="centerCrop"
         android:src="@drawable/frostmourne" />
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/map_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary"
+                android:minHeight="?attr/actionBarSize"
+                android:theme="?attr/actionBarTheme"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:layout_editor_absoluteX="1dp" />
+
+            <Button
+                android:id="@+id/leaderboard_back_btn"
+                android:layout_width="55dp"
+                android:layout_height="43dp"
+                app:icon="?attr/homeAsUpIndicator"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.538" />
+
+            <TextView
+                android:id="@+id/battle_title_txt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Leaderboard"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/leaderboard_back_btn"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
     <LinearLayout
         android:id="@+id/leaderboard_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout">
 
         <TextView
             android:id="@+id/textView3"
@@ -29,19 +75,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.2"
             android:text="Rank"
+            android:textColor="@color/white"
             android:textSize="30dp"
-            android:textStyle="bold"
-            android:textColor="@color/white"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textView2"
-            android:layout_width="wrap_content"
+            android:layout_width="147dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Name"
-            android:textStyle="bold"
+            android:textColor="@color/white"
             android:textSize="30dp"
-            android:textColor="@color/white"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textView"
@@ -50,9 +96,9 @@
             android:layout_weight="1"
             android:text="Power"
             android:textAlignment="viewEnd"
-            android:textStyle="bold"
+            android:textColor="@color/gold"
             android:textSize="30dp"
-            android:textColor="@color/gold"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
     <ImageView

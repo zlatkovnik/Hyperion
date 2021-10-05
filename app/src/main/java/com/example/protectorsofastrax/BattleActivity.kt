@@ -39,6 +39,10 @@ class BattleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(com.example.protectorsofastrax.R.layout.activity_battle)
 
+        battle_back_btn.setOnClickListener {
+            finish()
+        }
+
         val enemyId =intent.getStringExtra("enemyID")as String
         battleId = intent.getStringExtra("battle_id")!!
 //        val cardsInBattle: ArrayList<Card> = ArrayList<Card>()
