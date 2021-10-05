@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
+import android.location.LocationListener
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -34,7 +35,7 @@ import org.osmdroid.util.GeoPoint
 class LocationService : Service() {
     private val channelId = "location_service"
     private val channelName = "My Location Service"
-    private lateinit var cachedLocation: Location
+    private var cachedLocation: Location? = null
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         onTaskRemoved(intent)
 
@@ -71,6 +72,17 @@ class LocationService : Service() {
         TODO("Not yet implemented")
     }
 
+    private val locationCallback: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val location: Location = locationResult.lastLocation
+            if (location != null) {
+                FirebaseDatabase.getInstance().reference.child("users").child(Firebase.auth.uid!!)
+                    .setValue(GeoPoint(location.latitude, location.longitude))
+                cachedLocation = location
+            }
+        }
+    }
+
     private fun requestLocationUpdates() {
         val request = LocationRequest()
         request.interval = 10000
@@ -85,16 +97,7 @@ class LocationService : Service() {
         )
         if (permission == PackageManager.PERMISSION_GRANTED) { // Request location updates and when an update is
             // received, store the location in Firebase
-            client.requestLocationUpdates(request, object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult) {
-                    val location: Location = locationResult.lastLocation
-                    if (location != null) {
-                        FirebaseDatabase.getInstance().reference.child("users").child(Firebase.auth.uid!!)
-                            .setValue(GeoPoint(location.latitude, location.longitude))
-                        cachedLocation = location
-                    }
-                }
-            }, null)
+            client.requestLocationUpdates(request, locationCallback, null)
         }
 
         FirebaseDatabase.getInstance().reference
@@ -112,7 +115,7 @@ class LocationService : Service() {
                         val latitude = value["latitude"]
                         val longitude = value["longitude"]
                         val userLocation = LatLng(latitude!!, longitude!!)
-                        val myLocation = LatLng(cachedLocation.latitude, cachedLocation.longitude)
+                        val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
                         val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
                         if(distance < 500.0){
                             FirebaseFirestore.getInstance().collection("users").document(key).get()
@@ -157,7 +160,7 @@ class LocationService : Service() {
                         val latitude = value["latitude"] as Double
                         val longitude = value["longitude"] as Double
                         val userLocation = LatLng(latitude, longitude)
-                        val myLocation = LatLng(cachedLocation.latitude, cachedLocation.longitude)
+                        val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
                         val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
                         if(distance < 500.0){
                             val intent = Intent(this@LocationService, ProfileActivity::class.java).apply {
@@ -184,8 +187,8 @@ class LocationService : Service() {
                     Log.e(ContentValues.TAG, error.message);
                 }
             })
-
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(channelId: String, channelName: String): String{
@@ -196,5 +199,13 @@ class LocationService : Service() {
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         service.createNotificationChannel(chan)
         return channelId
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val client: FusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(this)
+        client.removeLocationUpdates(locationCallback)
+        stopForeground(true)
     }
 }

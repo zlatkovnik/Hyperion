@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         main_logout_btn.setOnClickListener {
+            stopService(Intent(applicationContext, LocationService::class.java))
             Firebase.auth.signOut()
             intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
