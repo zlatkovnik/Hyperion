@@ -48,7 +48,7 @@ class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
         data class EnemyLocation(val enemyId: String, val latitude: Double, val longitude: Double)
         val latitude = intent.extras!!["latitude"] as Double
         val longitude = intent.extras!!["longitude"] as Double
-        val enemy = EnemyLocation(item.id, latitude, longitude)
+        val enemy = EnemyLocation(item.id!!, latitude, longitude)
         FirebaseDatabase.getInstance().reference.child("battles").child(userId)
             .setValue(enemy)
         finish()
