@@ -119,6 +119,14 @@ class AddFriendsActivity : AppCompatActivity() {
 
             }
         }
+        find_friends_back_btn.setOnClickListener {
+            if(isTaskRoot){
+                val intent = Intent(this@AddFriendsActivity, MainActivity::class.java)
+                startActivity(intent)
+            } else {
+                finish()
+            }
+        }
     }
 
     private fun getPairedDevices(){

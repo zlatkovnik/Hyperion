@@ -73,6 +73,15 @@ class MyCardsActivity : AppCompatActivity() {
                 Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
             }
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, IntentFilter("select-card"));
+
+        myCards_back_btn.setOnClickListener {
+            if(isTaskRoot){
+                val intent = Intent(this@MyCardsActivity, MainActivity::class.java)
+                startActivity(intent)
+            } else {
+                finish()
+            }
+        }
     }
 
 

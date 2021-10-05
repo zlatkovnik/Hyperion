@@ -126,6 +126,15 @@ class BattleActivity : AppCompatActivity() {
             battle_addcard_btn.isEnabled=false
         }
 
+        battle_back_btn.setOnClickListener {
+            if(isTaskRoot){
+                val intent = Intent(this@BattleActivity, MapActivity::class.java)
+                startActivity(intent)
+            } else {
+                finish()
+            }
+        }
+
         battle_addcard_btn.setOnClickListener {
             val i= Intent(this@BattleActivity,MyCardsActivity::class.java)
             i.putExtra("user_id",Firebase.auth.uid)
