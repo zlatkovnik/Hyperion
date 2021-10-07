@@ -152,6 +152,10 @@ class LocationService : Service() {
             .child("battles")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    if(snapshot.value==null)
+                    {
+                        return
+                    }
                     val battleLocations = snapshot.value as HashMap<String, HashMap<String, Any>>
                     for((key, value) in battleLocations) {
                         if(cachedLocation == null){
