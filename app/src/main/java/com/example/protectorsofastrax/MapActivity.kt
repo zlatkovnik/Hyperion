@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
@@ -160,7 +161,10 @@ class MapActivity : AppCompatActivity() {
             }
             val radius = 500.0
             val circlePoints = ArrayList<GeoPoint>()
-            for (i in 0..360) {
+            myCircle!!.strokeWidth = 3.0f
+            myCircle!!.strokeColor = Color.rgb(65, 105, 225)
+            myCircle!!.fillColor = Color.argb(50, 65, 105, 225)
+            for (i in 0..360 step 10) {
                 circlePoints.add(
                     GeoPoint(location.latitude, location.longitude).destinationPoint(
                         radius,
