@@ -330,7 +330,7 @@ class MapActivity : AppCompatActivity() {
                                 }
                         }
                         if (map != null && user?.marker == null && !user!!.isFriend) {
-                            if (user?.uid != Firebase.auth.uid!! && map != null) {
+                            if (user?.uid != Firebase.auth.uid!!) {
                                 val marker = Marker(map)
                                 marker.position =
                                     GeoPoint(value["latitude"]!!, value["longitude"]!!)
