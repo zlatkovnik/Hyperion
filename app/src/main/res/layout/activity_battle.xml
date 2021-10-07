@@ -143,5 +143,18 @@
         app:layout_constraintStart_toEndOf="@+id/battle_power_txt"
         app:layout_constraintTop_toBottomOf="@+id/battle_addcard_btn" />
 
+    <TextView
+        android:id="@+id/battle_win_chance_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:textSize="50dp"
+        android:textStyle="bold"
+        android:textColor="#F00"
+        android:text="20%"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/battle_enemy_img"
+        app:layout_constraintTop_toBottomOf="@+id/battle_addcard_btn" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

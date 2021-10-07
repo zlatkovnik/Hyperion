@@ -14,6 +14,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_create_battle.*
 import org.osmdroid.util.GeoPoint
 
 class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
@@ -32,6 +33,10 @@ class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
             }
 
         userId = Firebase.auth.uid!!
+
+        boss_select_back_btn.setOnClickListener {
+            finish()
+        }
     }
 
     private fun drawEnemies(enemies: ArrayList<Enemy>) {
@@ -48,7 +53,7 @@ class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
         data class EnemyLocation(val enemyId: String, val latitude: Double, val longitude: Double)
         val latitude = intent.extras!!["latitude"] as Double
         val longitude = intent.extras!!["longitude"] as Double
-        val enemy = EnemyLocation(item.id, latitude, longitude)
+        val enemy = EnemyLocation(item.id!!, latitude, longitude)
         FirebaseDatabase.getInstance().reference.child("battles").child(userId)
             .setValue(enemy)
         finish()
