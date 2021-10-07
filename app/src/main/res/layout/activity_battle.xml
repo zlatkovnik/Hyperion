@@ -59,10 +59,10 @@
         android:layout_marginStart="28dp"
         android:layout_marginTop="24dp"
         android:text="Enemy:"
-        android:shadowColor="#000000"
-        android:shadowRadius="5.0"
         android:textColor="#F00"
         android:textSize="36sp"
+        android:shadowColor="#000000"
+        android:shadowRadius="5.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
