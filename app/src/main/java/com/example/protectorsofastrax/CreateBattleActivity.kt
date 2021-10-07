@@ -54,8 +54,7 @@ class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
         val id=FirebaseAuth.getInstance().uid as String
         val latitude = intent.extras!!["latitude"] as Double
         val longitude = intent.extras!!["longitude"] as Double
-        var userCardMap : HashMap<String, String> =HashMap<String, String>()
-         val battle=BattleLocation( id,item.id!!, latitude, longitude,null,userCardMap)
+         val battle=BattleLocation( id,item.id!!, latitude, longitude,null,null)
 
         FirebaseDatabase.getInstance().reference.child("battles").child(userId)
             .setValue(battle)
