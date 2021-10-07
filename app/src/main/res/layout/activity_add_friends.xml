@@ -52,27 +52,29 @@
 
             <Button
                 android:id="@+id/select_device_refresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="53dp"
+                android:layout_height="47dp"
                 android:layout_gravity="center"
 
-                android:layout_marginStart="12dp"
-                android:layout_marginBottom="4dp"
-                android:text="Search"
+                android:layout_marginStart="32dp"
+                android:drawableEnd="@drawable/ic_magnifying_glass"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/MyCards_title_txt" />
+                app:layout_constraintStart_toEndOf="@+id/MyCards_title_txt"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.769" />
 
             <Button
                 android:id="@+id/btn_visability"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginBottom="4dp"
                 android:text="Visibility"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintLeft_toRightOf="@id/select_device_refresh"
-                app:layout_constraintRight_toRightOf="parent" />
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.75" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -83,7 +85,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="paired devices"
-
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
