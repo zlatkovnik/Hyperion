@@ -58,31 +58,22 @@
                 android:id="@+id/map_battle_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
                 android:layout_marginBottom="8dp"
+                android:checked="true"
                 android:text="Show battles"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:checked="true" />
+                app:layout_constraintStart_toStartOf="parent" />
 
             <Switch
                 android:id="@+id/map_friends_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp"
                 android:text="Friends Only"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/map_local_switch"
-                app:layout_constraintStart_toEndOf="@+id/map_battle_switch" />
-
-            <Switch
-                android:id="@+id/map_local_switch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Local only"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                />
+                app:layout_constraintEnd_toEndOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
