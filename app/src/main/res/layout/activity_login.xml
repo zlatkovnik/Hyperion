@@ -15,12 +15,12 @@
         android:src="@drawable/arthas" />
 
     <ImageView
-        android:layout_width="286dp"
-        android:layout_height="298dp"
+        android:layout_width="338dp"
+        android:layout_height="301dp"
         android:layout_alignParentTop="true"
-        android:alpha="0.7"
+        android:alpha="0.3"
         android:scaleType="centerCrop"
-        android:src="@color/white"
+        android:src="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

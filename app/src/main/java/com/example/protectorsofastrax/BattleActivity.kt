@@ -138,77 +138,77 @@ class BattleActivity : AppCompatActivity() {
                                     var power = it["power"] as Long
                                     cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
                                 }
-                            }
-                            FirebaseFirestore.getInstance().collection("enemies").document(enemyId)
-                                .get()
-                                .addOnSuccessListener { enemySnapshot ->
-                                    val basePower =
-                                        if (cardsInBattle.size > 0) cardsInBattle.map { card -> card.power }
-                                            .reduce { acc, cardPower -> acc + cardPower }
-                                        else 0
-                                    var totalPower: Long = basePower
-                                    val enemyPower = enemySnapshot.data?.get("power") as Long
-                                    cardsInBattle.forEach { card ->
-                                        val filteredCards =
-                                            cardsInBattle.filter { c -> c.name == card.name }
-                                        if (card.race == "Human") {
-                                            // Orci smanjuju ljudima
-                                            val foundOrc =
-                                                filteredCards.find { c -> c.race == "Orc" }
-                                            if (foundOrc != null) {
-                                                totalPower -= (card.power * 0.2).toLong()
+                                FirebaseFirestore.getInstance().collection("enemies").document(enemyId)
+                                    .get()
+                                    .addOnSuccessListener { enemySnapshot ->
+                                        val basePower =
+                                            if (cardsInBattle.size > 0) cardsInBattle.map { card -> card.power }
+                                                .reduce { acc, cardPower -> acc + cardPower }
+                                            else 0
+                                        var totalPower: Long = basePower
+                                        val enemyPower = enemySnapshot.data?.get("power") as Long
+                                        cardsInBattle.forEach { card ->
+                                            val filteredCards =
+                                                cardsInBattle.filter { c -> c.name == card.name }
+                                            if (card.race == "Human") {
+                                                // Orci smanjuju ljudima
+                                                val foundOrc =
+                                                    filteredCards.find { c -> c.race == "Orc" }
+                                                if (foundOrc != null) {
+                                                    totalPower -= (card.power * 0.2).toLong()
+                                                }
+                                                // Ljudi povecavaju druge ljude
+                                                val foundHuman =
+                                                    filteredCards.find { c -> c.race == card.race }
+                                                if (foundHuman != null) {
+                                                    totalPower += (card.power * 0.15).toLong()
+                                                }
                                             }
-                                            // Ljudi povecavaju druge ljude
-                                            val foundHuman =
-                                                filteredCards.find { c -> c.race == card.race }
-                                            if (foundHuman != null) {
-                                                totalPower += (card.power * 0.15).toLong()
+                                            // Zmajevi ne vole druge zmajeve
+                                            if (card.race == "Dragon") {
+                                                val foundDragon =
+                                                    filteredCards.find { c -> c.race == card.race }
+                                                if (foundDragon != null) {
+                                                    totalPower -= (card.power * 0.3).toLong()
+                                                }
+                                            }
+                                            // Ako warrior ima healeri
+                                            if (card.clas == "Warrior") {
+                                                val foundPriest =
+                                                    filteredCards.find { c -> c.clas == "Priest" || c.clas == "Paladin" }
+                                                if (foundPriest != null) {
+                                                    totalPower += (card.power * 0.275).toLong()
+                                                }
+                                            }
+                                            // Ako mage ima warloci
+                                            if (card.clas == "Mage") {
+                                                val foundWarlock =
+                                                    filteredCards.find { c -> c.clas == "Warlock" }
+                                                if (foundWarlock != null) {
+                                                    totalPower -= (card.power * 0.2).toLong()
+                                                }
+                                            }
+                                            // Ako warlock ima healeri
+                                            if (card.clas == "Warlock") {
+                                                val foundPriest =
+                                                    filteredCards.find { c -> c.clas == "Priest" }
+                                                if (foundPriest != null) {
+                                                    totalPower += (card.power * 0.15).toLong()
+                                                }
                                             }
                                         }
-                                        // Zmajevi ne vole druge zmajeve
-                                        if (card.race == "Dragon") {
-                                            val foundDragon =
-                                                filteredCards.find { c -> c.race == card.race }
-                                            if (foundDragon != null) {
-                                                totalPower -= (card.power * 0.3).toLong()
-                                            }
-                                        }
-                                        // Ako warrior ima healeri
-                                        if (card.clas == "Warrior") {
-                                            val foundPriest =
-                                                filteredCards.find { c -> c.clas == "Priest" || c.clas == "Paladin" }
-                                            if (foundPriest != null) {
-                                                totalPower += (card.power * 0.275).toLong()
-                                            }
-                                        }
-                                        // Ako mage ima warloci
-                                        if (card.clas == "Mage") {
-                                            val foundWarlock =
-                                                filteredCards.find { c -> c.clas == "Warlock" }
-                                            if (foundWarlock != null) {
-                                                totalPower -= (card.power * 0.2).toLong()
-                                            }
-                                        }
-                                        // Ako warlock ima healeri
-                                        if (card.clas == "Warlock") {
-                                            val foundPriest =
-                                                filteredCards.find { c -> c.clas == "Priest" }
-                                            if (foundPriest != null) {
-                                                totalPower += (card.power * 0.15).toLong()
-                                            }
-                                        }
+                                        totalPower -= (basePower * cardsInBattle.size * cardsInBattle.size * 0.014).toLong()
+                                        cachedOdds = totalPower.toDouble() / enemyPower.toDouble()
+                                        if (cachedOdds > 90.0) cachedOdds = 90.0
+                                        this@BattleActivity.runOnUiThread(Runnable {
+                                            battle_win_chance_txt.text =
+                                                (cachedOdds * 100).toInt().toString() + "%"
+                                        })
                                     }
-                                    totalPower -= (basePower * cardsInBattle.size * cardsInBattle.size * 0.014).toLong()
-                                    cachedOdds = totalPower.toDouble() / enemyPower.toDouble()
-                                    if (cachedOdds > 90.0) cachedOdds = 90.0
-                                    this@BattleActivity.runOnUiThread(Runnable {
-                                        battle_win_chance_txt.text =
-                                            (cachedOdds * 100).toInt().toString() + "%"
-                                    })
-                                }
-                            this@BattleActivity.runOnUiThread(Runnable {
-                                drawCards(cardsInBattle)
-                            })
+                                this@BattleActivity.runOnUiThread(Runnable {
+                                    drawCards(cardsInBattle)
+                                })
+                            }
                         }
                     }
 
