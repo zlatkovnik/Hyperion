@@ -41,13 +41,13 @@ class EnemiesAdapter(private val enemies: ArrayList<Enemy>, val clickListener: O
         val name: TextView
         val power: TextView
         val picture: ImageView
-        val select: Button
+//        val select: Button
 
         init {
             name = view.findViewById(R.id.enemy_name_txt)
             power = view.findViewById(R.id.enemy_power_txt)
             picture = view.findViewById(R.id.enemy_avatar_img)
-            select = view.findViewById(R.id.enemy_select_btn)
+//            select = view.findViewById(R.id.enemy_select_btn)
         }
     }
 
@@ -80,6 +80,7 @@ class EnemiesAdapter(private val enemies: ArrayList<Enemy>, val clickListener: O
         viewHolder.itemView.setOnClickListener {
             clickListener.onItemClick(enemies[position], position)
         }
+
     }
 
     // Return the size of your dataset (invoked by the layout manager)
