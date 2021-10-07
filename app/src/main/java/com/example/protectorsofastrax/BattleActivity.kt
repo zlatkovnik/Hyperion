@@ -23,10 +23,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
-import com.squareup.okhttp.MediaType
-import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Request
-import com.squareup.okhttp.RequestBody
+import com.squareup.okhttp.*
 import kotlinx.android.synthetic.main.activity_battle.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitAll
@@ -99,9 +96,8 @@ class BattleActivity : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val battle = snapshot.value as HashMap<String, Any>
                     var userCard = battle["userCardMap"] as HashMap<String, String>?
-                    if(userCard ==null)
-                    {
-                        battle_win_chance_txt.text=""
+                    if (userCard == null) {
+                        battle_win_chance_txt.text = ""
                         cachedBattleLocation = BattleLocation(
                             battleId,
                             enemyId,
@@ -110,44 +106,46 @@ class BattleActivity : AppCompatActivity() {
                             null,
                             userCard
                         )
-                    }
-                    else{
-                    cachedBattleLocation = BattleLocation(
-                        battleId,
-                        enemyId,
-                        battle["latitude"] as Double,
-                        battle["longitude"] as Double,
-                        null,
-                        userCard
-                    )
+                    } else {
+                        cachedBattleLocation = BattleLocation(
+                            battleId,
+                            enemyId,
+                            battle["latitude"] as Double,
+                            battle["longitude"] as Double,
+                            null,
+                            userCard
+                        )
 
-                    val cardsIdInBattle = ArrayList<String>()
-                    val cardsInBattle = ArrayList<Card>()
-                    if (userCard != null) {
-                        userCard.forEach { it ->
-                            cardsIdInBattle.add(it.value)
-                        }
-                        var requests = cardsIdInBattle.map { cid ->
-                            FirebaseFirestore.getInstance().collection("cards").document(cid).get()
-                                .asDeferred()
-                        }
-                        GlobalScope.launch {
-                            val results: ArrayList<DocumentSnapshot> =
-                                requests.awaitAll() as ArrayList<DocumentSnapshot>
-                            results.forEach {
-                                var name = it["name"] as String
-                                var picture = it["picture"] as String
-                                var race = it["race"] as String
-                                var clas = it["clas"] as String
-                                var power = it["power"] as Long
-                                cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
+                        val cardsIdInBattle = ArrayList<String>()
+                        val cardsInBattle = ArrayList<Card>()
+                        if (userCard != null) {
+                            userCard.forEach { it ->
+                                cardsIdInBattle.add(it.value)
                             }
-                        }
+                            var requests = cardsIdInBattle.map { cid ->
+                                FirebaseFirestore.getInstance().collection("cards").document(cid)
+                                    .get()
+                                    .asDeferred()
+                            }
+                            GlobalScope.launch {
+                                val results: ArrayList<DocumentSnapshot> =
+                                    requests.awaitAll() as ArrayList<DocumentSnapshot>
+                                results.forEach {
+                                    var name = it["name"] as String
+                                    var picture = it["picture"] as String
+                                    var race = it["race"] as String
+                                    var clas = it["clas"] as String
+                                    var power = it["power"] as Long
+                                    cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
+                                }
+                            }
                             FirebaseFirestore.getInstance().collection("enemies").document(enemyId)
                                 .get()
                                 .addOnSuccessListener { enemySnapshot ->
-                                    val basePower = cardsInBattle.map { card -> card.power }
-                                        .reduce { acc, cardPower -> acc + cardPower }
+                                    val basePower =
+                                        if (cardsInBattle.size > 0) cardsInBattle.map { card -> card.power }
+                                            .reduce { acc, cardPower -> acc + cardPower }
+                                        else 0
                                     var totalPower: Long = basePower
                                     val enemyPower = enemySnapshot.data?.get("power") as Long
                                     cardsInBattle.forEach { card ->
@@ -355,13 +353,30 @@ class BattleActivity : AppCompatActivity() {
     }
 
     private fun sendNotification(notification: JSONObject) {
-//        val client = OkHttpClient()
-//        val body: RequestBody =
-//            RequestBody.create(MediaType.parse("application/json; charset=utf-8"), notification.toString())
-//        val request: Request = Builder()
-//            .header("Authorization", "key=YOUR_FCM_KEY")
-//            .url("https://fcm.googleapis.com/fcm/send")
-//            .post(body)
-//            .build()
+        try {
+            val client = OkHttpClient()
+            val json = JSONObject()
+            val notificationJson = JSONObject()
+            json.put("notification", notificationJson)
+            json.put("data", notification)
+            json.put("to", notification["to"])
+            val body = RequestBody.create(
+                MediaType.parse("application/json; charset=utf-8"),
+                json.toString()
+            )
+            val request = Request.Builder()
+                .header(
+                    "Authorization",
+                    "key=AAAAH_56F6M:APA91bGiJRGPNFNAEewnJRcRM01SbUUzsFJtQLjGoBpp-9ZsQ4VoxNOeTq60tDeFCjmsBEwMoKoSsy8MiKuRtjUuBnptNdbxWdD3bpT3e3VZf126lvwoSkuqvNWhh0MPf146OJZDSIzJ"
+                )
+                .url("https://fcm.googleapis.com/fcm/send")
+                .post(body)
+                .build()
+            val response: Response = client.newCall(request).execute()
+            val finalResponse: String = response.body().string()
+            Log.i("TAG", finalResponse)
+        } catch (e: Exception) {
+            Log.i("TAG", e.message!!)
+        }
     }
 }
