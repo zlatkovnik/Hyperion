@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.Card
 import com.example.protectorsofastrax.data.Enemy
 import com.google.firebase.auth.FirebaseAuth
@@ -50,12 +51,14 @@ class CreateBattleActivity : AppCompatActivity(), OnEnemyItemClickListner {
     }
 
     override fun onItemClick(item: Enemy, position: Int) {
-        data class EnemyLocation(val enemyId: String, val latitude: Double, val longitude: Double)
+        val id=FirebaseAuth.getInstance().uid as String
         val latitude = intent.extras!!["latitude"] as Double
         val longitude = intent.extras!!["longitude"] as Double
-        val enemy = EnemyLocation(item.id!!, latitude, longitude)
+        var userCardMap : HashMap<String, String> =HashMap<String, String>()
+         val battle=BattleLocation( id,item.id!!, latitude, longitude,null,userCardMap)
+
         FirebaseDatabase.getInstance().reference.child("battles").child(userId)
-            .setValue(enemy)
+            .setValue(battle)
         finish()
     }
 }
