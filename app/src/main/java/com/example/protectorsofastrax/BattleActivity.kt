@@ -2,6 +2,7 @@ package com.example.protectorsofastrax
 
 import android.app.Activity
 import android.content.Intent
+import android.opengl.Visibility
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -89,89 +90,114 @@ class BattleActivity : AppCompatActivity() {
             .addValueEventListener(object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val battle = snapshot.value as HashMap<String, Any>
-                    cachedBattleLocation = BattleLocation(battleId, enemyId, battle["latitude"] as Double, battle["longitude"] as Double, null, battle["userCardMap"] as HashMap<String, String>)
                     var userCard = battle["userCardMap"] as HashMap<String, String>?
-                    val cardsIdInBattle=ArrayList<String>()
-                    val cardsInBattle=ArrayList<Card>()
-                    if (userCard != null) {
-                        userCard.forEach { it ->
-                            cardsIdInBattle.add(it.value)
-                        }
-                         var requests = cardsIdInBattle.map {  cid ->
-                    FirebaseFirestore.getInstance().collection("cards").document(cid).get().asDeferred()
-                    }
-                        GlobalScope.launch {
-                            val results: ArrayList<DocumentSnapshot> = requests.awaitAll() as ArrayList<DocumentSnapshot>
-                            results.forEach{
-                                var name = it["name"] as String
-                                var picture = it["picture"] as String
-                                var race = it["race"] as String
-                                var clas = it["clas"] as String
-                                var power = it["power"] as Long
-                                cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
+                    if (userCard == null) {
+                        userCard = HashMap<String, String>()
+                        battle_win_chance_txt.visibility=View.INVISIBLE
+                    } else {
+                        cachedBattleLocation = BattleLocation(
+                            battleId,
+                            enemyId,
+                            battle["latitude"] as Double,
+                            battle["longitude"] as Double,
+                            null,
+                            userCard
+                        )
+                        val cardsIdInBattle = ArrayList<String>()
+                        val cardsInBattle = ArrayList<Card>()
+                        if (userCard != null) {
+                            userCard.forEach { it ->
+                                cardsIdInBattle.add(it.value)
                             }
-
-                            FirebaseFirestore.getInstance().collection("enemies").document(enemyId).get()
-                                .addOnSuccessListener { enemySnapshot ->
-                                    val basePower = cardsInBattle.map { card -> card.power }.reduce { acc, cardPower -> acc + cardPower }
-                                    var totalPower: Long = basePower
-                                    val enemyPower = enemySnapshot.data?.get("power") as Long
-                                    cardsInBattle.forEach { card ->
-                                        val filteredCards = cardsInBattle.filter { c -> c.name == card.name }
-                                        if(card.race == "Human"){
-                                            // Orci smanjuju ljudima
-                                            val foundOrc = filteredCards.find {c -> c.race == "Orc"}
-                                            if(foundOrc != null){
-                                                totalPower -= (card.power * 0.2).toLong()
-                                            }
-                                            // Ljudi povecavaju druge ljude
-                                            val foundHuman = filteredCards.find { c -> c.race == card.race }
-                                            if(foundHuman != null){
-                                                totalPower += (card.power * 0.15).toLong()
-                                            }
-                                        }
-                                        // Zmajevi ne vole druge zmajeve
-                                        if(card.race == "Dragon"){
-                                            val foundDragon = filteredCards.find { c -> c.race == card.race}
-                                            if(foundDragon != null){
-                                                totalPower -= (card.power * 0.3).toLong()
-                                            }
-                                        }
-                                        // Ako warrior ima healeri
-                                        if(card.clas == "Warrior"){
-                                            val foundPriest = filteredCards.find  { c -> c.clas == "Priest" || c.clas == "Paladin"}
-                                            if(foundPriest != null){
-                                                totalPower += (card.power * 0.275).toLong()
-                                            }
-                                        }
-                                        // Ako mage ima warloci
-                                        if(card.clas == "Mage"){
-                                            val foundWarlock = filteredCards.find  { c -> c.clas == "Warlock"}
-                                            if(foundWarlock != null){
-                                                totalPower -= (card.power * 0.2).toLong()
-                                            }
-                                        }
-                                        // Ako warlock ima healeri
-                                        if(card.clas == "Warlock"){
-                                            val foundPriest = filteredCards.find  { c -> c.clas == "Priest"}
-                                            if(foundPriest != null){
-                                                totalPower += (card.power * 0.15).toLong()
-                                            }
-                                        }
-                                    }
-                                    totalPower -= (basePower * cardsInBattle.size * cardsInBattle.size * 0.014).toLong()
-                                    cachedOdds = totalPower.toDouble() / enemyPower.toDouble()
-                                    if(cachedOdds > 90.0) cachedOdds = 90.0
-                                    this@BattleActivity.runOnUiThread(Runnable {
-                                        battle_win_chance_txt.text = (cachedOdds * 100).toInt().toString() + "%"
-                                    })
+                            var requests = cardsIdInBattle.map { cid ->
+                                FirebaseFirestore.getInstance().collection("cards").document(cid)
+                                    .get().asDeferred()
+                            }
+                            GlobalScope.launch {
+                                val results: ArrayList<DocumentSnapshot> =
+                                    requests.awaitAll() as ArrayList<DocumentSnapshot>
+                                results.forEach {
+                                    var name = it["name"] as String
+                                    var picture = it["picture"] as String
+                                    var race = it["race"] as String
+                                    var clas = it["clas"] as String
+                                    var power = it["power"] as Long
+                                    cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
                                 }
-                            this@BattleActivity.runOnUiThread(Runnable {
-                                drawCards(cardsInBattle)
-                            })
-                        }
-                  }
 
+                                FirebaseFirestore.getInstance().collection("enemies")
+                                    .document(enemyId).get()
+                                    .addOnSuccessListener { enemySnapshot ->
+                                        val basePower = cardsInBattle.map { card -> card.power }
+                                            .reduce { acc, cardPower -> acc + cardPower }
+                                        var totalPower: Long = basePower
+                                        val enemyPower = enemySnapshot.data?.get("power") as Long
+                                        cardsInBattle.forEach { card ->
+                                            val filteredCards =
+                                                cardsInBattle.filter { c -> c.name == card.name }
+                                            if (card.race == "Human") {
+                                                // Orci smanjuju ljudima
+                                                val foundOrc =
+                                                    filteredCards.find { c -> c.race == "Orc" }
+                                                if (foundOrc != null) {
+                                                    totalPower -= (card.power * 0.2).toLong()
+                                                }
+                                                // Ljudi povecavaju druge ljude
+                                                val foundHuman =
+                                                    filteredCards.find { c -> c.race == card.race }
+                                                if (foundHuman != null) {
+                                                    totalPower += (card.power * 0.15).toLong()
+                                                }
+                                            }
+                                            // Zmajevi ne vole druge zmajeve
+                                            if (card.race == "Dragon") {
+                                                val foundDragon =
+                                                    filteredCards.find { c -> c.race == card.race }
+                                                if (foundDragon != null) {
+                                                    totalPower -= (card.power * 0.3).toLong()
+                                                }
+                                            }
+                                            // Ako warrior ima healeri
+                                            if (card.clas == "Warrior") {
+                                                val foundPriest =
+                                                    filteredCards.find { c -> c.clas == "Priest" || c.clas == "Paladin" }
+                                                if (foundPriest != null) {
+                                                    totalPower += (card.power * 0.275).toLong()
+                                                }
+                                            }
+                                            // Ako mage ima warloci
+                                            if (card.clas == "Mage") {
+                                                val foundWarlock =
+                                                    filteredCards.find { c -> c.clas == "Warlock" }
+                                                if (foundWarlock != null) {
+                                                    totalPower -= (card.power * 0.2).toLong()
+                                                }
+                                            }
+                                            // Ako warlock ima healeri
+                                            if (card.clas == "Warlock") {
+                                                val foundPriest =
+                                                    filteredCards.find { c -> c.clas == "Priest" }
+                                                if (foundPriest != null) {
+                                                    totalPower += (card.power * 0.15).toLong()
+                                                }
+                                            }
+                                        }
+                                        totalPower -= (basePower * cardsInBattle.size * cardsInBattle.size * 0.014).toLong()
+                                        cachedOdds = totalPower.toDouble() / enemyPower.toDouble()
+                                        if (cachedOdds > 90.0) cachedOdds = 90.0
+                                        this@BattleActivity.runOnUiThread(Runnable {
+                                            battle_win_chance_txt.visibility=View.VISIBLE
+                                            battle_win_chance_txt.text =
+                                                (cachedOdds * 100).toInt().toString() + "%"
+                                        })
+                                    }
+                                this@BattleActivity.runOnUiThread(Runnable {
+                                    drawCards(cardsInBattle)
+                                })
+                            }
+                        }
+
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -204,6 +230,7 @@ class BattleActivity : AppCompatActivity() {
             i.putExtra("select",true)
             startActivityForResult(i,200)
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
