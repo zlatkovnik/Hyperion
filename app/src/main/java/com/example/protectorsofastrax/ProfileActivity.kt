@@ -6,17 +6,25 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Menu
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.protectorsofastrax.data.Card
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_edit.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_profile.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.asDeferred
 
 
 class ProfileActivity : AppCompatActivity() {
@@ -28,6 +36,8 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var user: FirebaseUser
 
     private lateinit var userId: String
+
+    private var cardsArrayAdapter: ArrayAdapter<String>? = null
 
     //    var storage=Firebase
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +89,7 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
         prof_back_btn.setOnClickListener {
-            if(isTaskRoot){
+            if (isTaskRoot) {
                 val intent = Intent(this@ProfileActivity, MainActivity::class.java)
                 startActivity(intent)
             } else {
@@ -87,6 +97,33 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+        FirebaseFirestore.getInstance().collection("users").document(userId).get()
+            .addOnSuccessListener {
+
+                GlobalScope.launch {
+                    cardsArrayAdapter = ArrayAdapter(this@ProfileActivity, android.R.layout.simple_list_item_1)
+                    var cardIds = it["cards"] as ArrayList<String>
+                    var requests = cardIds.map { cid ->
+                        FirebaseFirestore.getInstance().collection("cards").document(cid).get()
+                            .asDeferred()
+                    }
+                    val results: ArrayList<DocumentSnapshot> =
+                        requests.awaitAll() as ArrayList<DocumentSnapshot>
+                    results.forEach {
+                        var name = it["name"] as String
+                        var race = it["race"] as String
+                        var clas = it["clas"] as String
+                        var power = it["power"] as Long
+                        var txt= "$name  power:$power"
+                        cardsArrayAdapter!!.add(txt)
+                    }
+                    this@ProfileActivity.runOnUiThread(Runnable {
+                        prof_rw.adapter = cardsArrayAdapter
+                    })
+
+
+                }
+            }
     }
 
     override fun onBackPressed() {

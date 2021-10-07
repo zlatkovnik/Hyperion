@@ -46,6 +46,7 @@ class MyCardsActivity : AppCompatActivity() {
         val select=intent.getBooleanExtra("select", false)
         val user_id = intent.getStringExtra("user_id")
         val cards : ArrayList<Card> = ArrayList<Card>()
+        cards_progressBar.visibility=View.VISIBLE
         firestore.collection("users").document(user_id!!).get()
             .addOnSuccessListener { ds ->
                 var cardIds = ds["cards"] as ArrayList<String>
@@ -64,7 +65,7 @@ class MyCardsActivity : AppCompatActivity() {
                     }
                     this@MyCardsActivity.runOnUiThread(Runnable {
                         drawCards(cards,select)
-
+                        cards_progressBar.visibility=View.GONE
                     })
 //                    drawCards(cards)
                 }
