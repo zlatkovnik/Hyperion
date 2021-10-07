@@ -316,31 +316,14 @@ class BattleActivity : AppCompatActivity() {
                                             .document(snapshot.id).get()
                                             .addOnSuccessListener { fcmSnapshot ->
                                                 val cardSnapshot =
-                                                    cardsSnapshot.documents.find { s -> s.id == randomCardId }
+                                                    cardsSnapshot.documents.find { s -> s.id.toString() == randomCardId }
                                                 val card = cardSnapshot?.toObject(Card::class.java)
-                                                val notification = JSONObject()
-                                                val notifcationBody = JSONObject()
-                                                try {
-                                                    notifcationBody.put(
-                                                        "title",
-                                                        "You won a battle!"
-                                                    )
-                                                    notifcationBody.put(
-                                                        "message",
-                                                        card?.name + " is now available!"
-                                                    )
-                                                    notification.put(
-                                                        "to",
-                                                        fcmSnapshot.data!!["token"]
-                                                    )
-                                                    notification.put("data", notifcationBody)
-                                                } catch (e: JSONException) {
-                                                    Log.e(
-                                                        ContentValues.TAG,
-                                                        "onCreate: " + e.message
-                                                    )
+                                                val message = object {
+                                                    val title = "Battle Won!"
+                                                    val text = card?.name + " is now available for battle."
                                                 }
-                                                sendNotification(notification)
+                                                FirebaseDatabase.getInstance().reference.child("notification").child(snapshot.id)
+                                                    .setValue(message)
                                                 finish()
                                             }
                                     }
@@ -349,34 +332,6 @@ class BattleActivity : AppCompatActivity() {
             }
         } else {
 
-        }
-    }
-
-    private fun sendNotification(notification: JSONObject) {
-        try {
-            val client = OkHttpClient()
-            val json = JSONObject()
-            val notificationJson = JSONObject()
-            json.put("notification", notificationJson)
-            json.put("data", notification)
-            json.put("to", notification["to"])
-            val body = RequestBody.create(
-                MediaType.parse("application/json; charset=utf-8"),
-                json.toString()
-            )
-            val request = Request.Builder()
-                .header(
-                    "Authorization",
-                    "key=AAAAH_56F6M:APA91bGiJRGPNFNAEewnJRcRM01SbUUzsFJtQLjGoBpp-9ZsQ4VoxNOeTq60tDeFCjmsBEwMoKoSsy8MiKuRtjUuBnptNdbxWdD3bpT3e3VZf126lvwoSkuqvNWhh0MPf146OJZDSIzJ"
-                )
-                .url("https://fcm.googleapis.com/fcm/send")
-                .post(body)
-                .build()
-            val response: Response = client.newCall(request).execute()
-            val finalResponse: String = response.body().string()
-            Log.i("TAG", finalResponse)
-        } catch (e: Exception) {
-            Log.i("TAG", e.message!!)
         }
     }
 }
