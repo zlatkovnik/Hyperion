@@ -169,6 +169,7 @@ class MapActivity : AppCompatActivity() {
                 )
             }
             myCircle!!.points = circlePoints
+            myCircle!!.setOnClickListener { polygon, mapView, eventPos -> false }
             map!!.overlays.add(myCircle)
         }
 

@@ -1,8 +1,10 @@
 package com.example.protectorsofastrax
 
-import android.app.Activity
+import android.app.*
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,7 +14,6 @@ import com.bumptech.glide.Glide
 import com.example.protectorsofastrax.data.BattleLocation
 import com.example.protectorsofastrax.data.Card
 import com.example.protectorsofastrax.data.User
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -22,11 +23,17 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.squareup.okhttp.MediaType
+import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.Request
+import com.squareup.okhttp.RequestBody
 import kotlinx.android.synthetic.main.activity_battle.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.asDeferred
+import org.json.JSONException
+import org.json.JSONObject
 
 
 class BattleActivity : AppCompatActivity() {
@@ -292,9 +299,37 @@ class BattleActivity : AppCompatActivity() {
                                 FirebaseFirestore.getInstance().collection("users")
                                     .document(snapshot.id).set(user)
                                     .addOnSuccessListener {
-
-
-                                        finish()
+                                        FirebaseFirestore.getInstance().collection("fcm")
+                                            .document(snapshot.id).get()
+                                            .addOnSuccessListener { fcmSnapshot ->
+                                                val cardSnapshot =
+                                                    cardsSnapshot.documents.find { s -> s.id == randomCardId }
+                                                val card = cardSnapshot?.toObject(Card::class.java)
+                                                val notification = JSONObject()
+                                                val notifcationBody = JSONObject()
+                                                try {
+                                                    notifcationBody.put(
+                                                        "title",
+                                                        "You won a battle!"
+                                                    )
+                                                    notifcationBody.put(
+                                                        "message",
+                                                        card?.name + " is now available!"
+                                                    )
+                                                    notification.put(
+                                                        "to",
+                                                        fcmSnapshot.data!!["token"]
+                                                    )
+                                                    notification.put("data", notifcationBody)
+                                                } catch (e: JSONException) {
+                                                    Log.e(
+                                                        ContentValues.TAG,
+                                                        "onCreate: " + e.message
+                                                    )
+                                                }
+                                                sendNotification(notification)
+                                                finish()
+                                            }
                                     }
                             }
                     }
@@ -302,5 +337,16 @@ class BattleActivity : AppCompatActivity() {
         } else {
 
         }
+    }
+
+    private fun sendNotification(notification: JSONObject) {
+//        val client = OkHttpClient()
+//        val body: RequestBody =
+//            RequestBody.create(MediaType.parse("application/json; charset=utf-8"), notification.toString())
+//        val request: Request = Builder()
+//            .header("Authorization", "key=YOUR_FCM_KEY")
+//            .url("https://fcm.googleapis.com/fcm/send")
+//            .post(body)
+//            .build()
     }
 }
