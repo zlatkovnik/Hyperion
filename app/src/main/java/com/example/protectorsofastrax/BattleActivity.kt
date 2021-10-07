@@ -98,15 +98,29 @@ class BattleActivity : AppCompatActivity() {
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val battle = snapshot.value as HashMap<String, Any>
+                    var userCard = battle["userCardMap"] as HashMap<String, String>?
+                    if(userCard ==null)
+                    {
+                        battle_win_chance_txt.text=""
+                        cachedBattleLocation = BattleLocation(
+                            battleId,
+                            enemyId,
+                            battle["latitude"] as Double,
+                            battle["longitude"] as Double,
+                            null,
+                            userCard
+                        )
+                    }
+                    else{
                     cachedBattleLocation = BattleLocation(
                         battleId,
                         enemyId,
                         battle["latitude"] as Double,
                         battle["longitude"] as Double,
                         null,
-                        battle["userCardMap"] as HashMap<String, String>
+                        userCard
                     )
-                    var userCard = battle["userCardMap"] as HashMap<String, String>?
+
                     val cardsIdInBattle = ArrayList<String>()
                     val cardsInBattle = ArrayList<Card>()
                     if (userCard != null) {
@@ -128,7 +142,7 @@ class BattleActivity : AppCompatActivity() {
                                 var power = it["power"] as Long
                                 cardsInBattle.add(Card(it.id, picture, name, clas, power, race))
                             }
-
+                        }
                             FirebaseFirestore.getInstance().collection("enemies").document(enemyId)
                                 .get()
                                 .addOnSuccessListener { enemySnapshot ->
@@ -201,6 +215,7 @@ class BattleActivity : AppCompatActivity() {
                     }
 
                 }
+
 
                 override fun onCancelled(error: DatabaseError) {
                     TODO("Not yet implemented")
