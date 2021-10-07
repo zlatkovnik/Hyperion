@@ -8,11 +8,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.protectorsofastrax.data.LeaderboardUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.auth.User
+import kotlinx.android.synthetic.main.activity_leaderboard.*
 
 class LeaderboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_leaderboard)
+
+        leaderboard_back_btn.setOnClickListener {
+            finish()
+        }
 
         FirebaseFirestore.getInstance().collection("users").get()
             .addOnSuccessListener { qs ->
