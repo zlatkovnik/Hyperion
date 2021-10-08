@@ -2,6 +2,7 @@ package com.example.protectorsofastrax
 
 
 import android.content.ContentResolver
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -31,7 +32,7 @@ import kotlin.collections.ArrayList
 class EnemiesAdapter(private val enemies: ArrayList<Enemy>, val clickListener: OnEnemyItemClickListner) :
     RecyclerView.Adapter<EnemiesAdapter.ViewHolder>() {
 
-
+    lateinit private var context: Context
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
@@ -63,15 +64,19 @@ class EnemiesAdapter(private val enemies: ArrayList<Enemy>, val clickListener: O
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
 
+        context = viewHolder.picture.context
         FirebaseStorage.getInstance().reference
             .child("enemies/" + enemies[position].picture)
             .downloadUrl
             .addOnSuccessListener { uri ->
-                val connection: HttpURLConnection =
-                    URL(uri.toString()).openConnection() as HttpURLConnection
-                connection.connect()
-                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
-                viewHolder.picture.setImageBitmap(x)
+//                val connection: HttpURLConnection =
+//                    URL(uri.toString()).openConnection() as HttpURLConnection
+//                connection.connect()
+//                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
+//                viewHolder.picture.setImageBitmap(x)
+                Glide.with(context)
+                    .load(uri)
+                    .into(viewHolder.picture)
             }
 
         viewHolder.name.text = enemies[position].name

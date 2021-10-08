@@ -74,6 +74,8 @@
         android:text=""
         android:textColor="#F00"
         android:textSize="36sp"
+        android:shadowColor="#000000"
+        android:shadowRadius="5.0"
         app:layout_constraintStart_toEndOf="@+id/battle_enemy_txt"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
