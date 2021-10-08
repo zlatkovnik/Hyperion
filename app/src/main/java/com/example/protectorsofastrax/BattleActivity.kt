@@ -1,10 +1,8 @@
 package com.example.protectorsofastrax
 
 import android.app.*
-import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -29,8 +27,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.asDeferred
-import org.json.JSONException
-import org.json.JSONObject
 
 
 class BattleActivity : AppCompatActivity() {
@@ -205,9 +201,18 @@ class BattleActivity : AppCompatActivity() {
                                                 (cachedOdds * 100).toInt().toString() + "%"
                                         })
                                     }
-                                this@BattleActivity.runOnUiThread(Runnable {
-                                    drawCards(cardsInBattle)
-                                })
+                                val thread = Thread {
+                                    try {
+                                        this@BattleActivity.runOnUiThread(Runnable {
+                                            drawCards(cardsInBattle)
+                                        })
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
+
+                                thread.start()
+
                             }
                         }
                     }

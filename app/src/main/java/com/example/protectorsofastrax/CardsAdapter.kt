@@ -39,7 +39,7 @@ class CardsAdapter(private val cards: ArrayList<Card>, private val select: Boole
         val classImage: ImageView
         val heroPower: TextView
         val cardselected: Button
-        val progresBar: ProgressBar
+
 
         init {
             // Define click listener for the ViewHolder's View.
@@ -48,7 +48,6 @@ class CardsAdapter(private val cards: ArrayList<Card>, private val select: Boole
             classImage = view.findViewById(R.id.card_class_img)
             heroPower = view.findViewById(R.id.card_power_txt)
             cardselected = view.findViewById(R.id.card_select_btn)
-            progresBar= view.findViewById(R.id.card_progressBar)
         }
     }
 
@@ -69,7 +68,7 @@ class CardsAdapter(private val cards: ArrayList<Card>, private val select: Boole
 //        viewHolder.textView.text = dataSet[position]
 //        val item = dataSet.get(holder.absoluteAdapterPosition)
 //        val item= cards[viewHolder.adapterPosition] as Int
-        viewHolder.progresBar.visibility=View.VISIBLE
+
         FirebaseStorage.getInstance().reference
             .child("cards/" + cards[position].picture)
             .downloadUrl
@@ -83,17 +82,20 @@ class CardsAdapter(private val cards: ArrayList<Card>, private val select: Boole
             .child("classes/" + cards[position].clas.toLowerCase() + ".png")
             .downloadUrl
             .addOnSuccessListener { uri ->
-                val connection: HttpURLConnection =
-                    URL(uri.toString()).openConnection() as HttpURLConnection
-                connection.connect()
-                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
-                viewHolder.classImage.setImageBitmap(x)
+//                val connection: HttpURLConnection =
+//                    URL(uri.toString()).openConnection() as HttpURLConnection
+//                connection.connect()
+//                val x: Bitmap = BitmapFactory.decodeStream(connection.inputStream)
+//                viewHolder.classImage.setImageBitmap(x)
+                Glide.with(context)
+                    .load(uri)
+                    .into(viewHolder.classImage)
             }
 
         viewHolder.heroName.text = cards[position].name
         viewHolder.heroPower.text = cards[position].power.toString()
         context = viewHolder.cardselected.context
-        viewHolder.progresBar.visibility=View.GONE
+
         if (select) {
             viewHolder.cardselected.isEnabled = true
             viewHolder.cardselected.visibility = View.VISIBLE

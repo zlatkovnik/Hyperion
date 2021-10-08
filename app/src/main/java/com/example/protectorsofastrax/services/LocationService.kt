@@ -2,6 +2,7 @@ package com.example.protectorsofastrax.services
 
 import android.Manifest
 import android.app.*
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -132,7 +133,7 @@ class LocationService : Service() {
                                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     }
                                     intent.putExtra("user_id", key)
-                                    intent.putExtra("enemyID", key)
+
                                     val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, 0)
 
                                     var builder = NotificationCompat.Builder(this@LocationService, channelId)
@@ -170,6 +171,7 @@ class LocationService : Service() {
                         }
                         val latitude = value["latitude"] as Double
                         val longitude = value["longitude"] as Double
+                        val enemyId=value["enemyId"] as String
                         val userLocation = LatLng(latitude, longitude)
                         val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
                         val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
@@ -178,7 +180,8 @@ class LocationService : Service() {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             }
                             intent.putExtra("battle_id", key)
-                            val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, 0)
+                            intent.putExtra("enemyID", enemyId)
+                            val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, FLAG_UPDATE_CURRENT)
 
                             var builder = NotificationCompat.Builder(this@LocationService, channelId)
                                 .setSmallIcon(R.drawable.sword_notif_icon)
