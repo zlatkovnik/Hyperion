@@ -324,6 +324,7 @@ class BattleActivity : AppCompatActivity() {
                                                 }
                                                 FirebaseDatabase.getInstance().reference.child("notification").child(snapshot.id)
                                                     .setValue(message)
+                                                FirebaseDatabase.getInstance().reference.child("battles").child(battleId).removeValue()
                                                 finish()
                                             }
                                     }
@@ -331,6 +332,15 @@ class BattleActivity : AppCompatActivity() {
                     }
             }
         } else {
+            val message = object {
+                val title = "You lost"
+                val text = "Better luck next time."
+            }
+            cachedBattleLocation?.userCardMap?.forEach { b ->
+                FirebaseDatabase.getInstance().reference.child("notification").child(b.key)
+                    .setValue(message)
+                finish()
+            }
 
         }
     }
