@@ -22,7 +22,6 @@
                 android:id="@+id/myCards_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:background="?attr/colorPrimary"
                 android:minHeight="?attr/actionBarSize"
                 android:theme="?attr/actionBarTheme"
@@ -56,12 +55,12 @@
                 android:layout_height="47dp"
                 android:layout_gravity="center"
 
-                android:layout_marginStart="32dp"
+                android:layout_marginStart="4dp"
                 android:drawableEnd="@drawable/ic_magnifying_glass"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/MyCards_title_txt"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.769" />
+                app:layout_constraintVertical_bias="0.555" />
 
             <Button
                 android:id="@+id/btn_visability"
