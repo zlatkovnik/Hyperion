@@ -9,6 +9,7 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.protectorsofastrax.MainActivity
 import com.example.protectorsofastrax.MyCardsActivity
 import com.example.protectorsofastrax.ProfileActivity
 import com.example.protectorsofastrax.R
@@ -20,22 +21,19 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 
 class NotificationService : Service() {
-    private val channelId = "notification_service"
-    private val channelName = "My Notification Service"
     private lateinit var listener: ValueEventListener
+    lateinit var notificationChannel: NotificationChannel
+    lateinit var notificationManager: NotificationManager
+    lateinit var builder: Notification.Builder
+    private val channelId = "12345"
+    private val description = "Test Notification"
     override fun onCreate() {
         super.onCreate()
 
-        val channelId =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                createNotificationChannel(channelId, channelName)
-            } else {
-                // If earlier version channel ID is not used
-                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-                ""
-            }
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        listener = FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!)
+        listener = FirebaseDatabase.getInstance().reference.child("notification")
+            .child(Firebase.auth.uid!!)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.value == null) {
@@ -45,25 +43,31 @@ class NotificationService : Service() {
                     val title = json["title"] as String
                     val text = json["text"] as String
 
-                    val intent = Intent(this@NotificationService, MyCardsActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    val intent = Intent(this@NotificationService, MainActivity::class.java)
+                    val pendingIntent = PendingIntent.getActivity(
+                        this@NotificationService,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        notificationChannel = NotificationChannel(
+                            channelId,
+                            description,
+                            NotificationManager.IMPORTANCE_HIGH
+                        )
+                        notificationChannel.lightColor = Color.BLUE
+                        notificationChannel.enableVibration(true)
+                        notificationManager.createNotificationChannel(notificationChannel)
+                        builder = Notification.Builder(this@NotificationService, channelId)
+                            .setContentTitle(title)
+                            .setContentText(text)
+                            .setSmallIcon(R.drawable.ic_card_pick)
+                            .setContentIntent(pendingIntent)
                     }
-                    intent.putExtra("user_id", Firebase.auth.uid!!)
-                    val pendingIntent: PendingIntent = PendingIntent.getActivity(this@NotificationService, 0, intent, 0)
+                    notificationManager.notify(12345, builder.build())
 
-                    var builder = NotificationCompat.Builder(this@NotificationService, channelId)
-                        .setSmallIcon(R.drawable.sword_notif_icon)
-                        .setColor(Color.WHITE)
-                        .setContentTitle("asd is nearby!")
-                        .setContentText("Why not say hi?")
-                        .setContentIntent(pendingIntent)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-                    with(NotificationManagerCompat.from(this@NotificationService)) {
-                        notify((Math.random() * 99989).toInt(), builder.build())
-                    }
-
-//                    FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!).removeValue()
+                    FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!).removeValue()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -79,13 +83,15 @@ class NotificationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        FirebaseDatabase.getInstance().reference.removeEventListener(listener)
+//        FirebaseDatabase.getInstance().reference.removeEventListener(listener)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(channelId: String, channelName: String): String{
-        val chan = NotificationChannel(channelId,
-            channelName, NotificationManager.IMPORTANCE_NONE)
+    private fun createNotificationChannel(channelId: String, channelName: String): String {
+        val chan = NotificationChannel(
+            channelId,
+            channelName, NotificationManager.IMPORTANCE_NONE
+        )
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

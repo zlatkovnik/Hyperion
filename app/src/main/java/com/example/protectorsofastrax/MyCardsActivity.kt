@@ -89,7 +89,6 @@ class MyCardsActivity : AppCompatActivity() {
     private var mMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
             val cardId = intent.getStringExtra("card_id")
-            Toast.makeText(this@MyCardsActivity, cardId, Toast.LENGTH_LONG).show()
             //Rokas server
             val returnIntent = Intent()
             returnIntent.putExtra("selected", cardId)
