@@ -51,7 +51,7 @@ class BattleActivity : AppCompatActivity() {
             finish()
         }
 
-        val enemyId = intent.getStringExtra("enemyID") as String
+        val enemyId = intent.getStringExtra("enemyID")!!
         battleId = intent.getStringExtra("battle_id")!!
 //        val cardsInBattle: ArrayList<Card> = ArrayList<Card>()
 //        var cardsIdInBattle:ArrayList<String> = ArrayList<String>()

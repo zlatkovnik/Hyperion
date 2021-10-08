@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.protectorsofastrax.BattleActivity
 import com.example.protectorsofastrax.ProfileActivity
 import com.example.protectorsofastrax.R
 import com.example.protectorsofastrax.data.UserLocation
@@ -36,6 +37,7 @@ class LocationService : Service() {
     private val channelId = "location_service"
     private val channelName = "My Location Service"
     private var cachedLocation: Location? = null
+    private val userMap = HashMap<String, Boolean>()
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         onTaskRemoved(intent)
 
@@ -109,6 +111,10 @@ class LocationService : Service() {
                         if(key == Firebase.auth.uid){
                             continue
                         }
+                        if(userMap[key] != null){
+                            continue
+                        }
+                        userMap[key] = true
                         if(cachedLocation == null){
                             continue
                         }
@@ -126,6 +132,7 @@ class LocationService : Service() {
                                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     }
                                     intent.putExtra("user_id", key)
+                                    intent.putExtra("enemyID", key)
                                     val pendingIntent: PendingIntent = PendingIntent.getActivity(this@LocationService, 0, intent, 0)
 
                                     var builder = NotificationCompat.Builder(this@LocationService, channelId)
@@ -137,7 +144,7 @@ class LocationService : Service() {
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
 
                                     with(NotificationManagerCompat.from(this@LocationService)) {
-                                        notify(8081, builder.build())
+                                        notify((Math.random() * 10000).toInt(), builder.build())
                                     }
                                 }
                         }
@@ -167,7 +174,7 @@ class LocationService : Service() {
                         val myLocation = LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
                         val distance = SphericalUtil.computeDistanceBetween(userLocation, myLocation)
                         if(distance < 500.0){
-                            val intent = Intent(this@LocationService, ProfileActivity::class.java).apply {
+                            val intent = Intent(this@LocationService, BattleActivity::class.java).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             }
                             intent.putExtra("battle_id", key)
@@ -182,7 +189,7 @@ class LocationService : Service() {
                                 .setPriority(NotificationCompat.PRIORITY_HIGH)
 
                             with(NotificationManagerCompat.from(this@LocationService)) {
-                                notify(8081, builder.build())
+                                notify((Math.random() * 10000).toInt(), builder.build())
                             }
                         }
                     }

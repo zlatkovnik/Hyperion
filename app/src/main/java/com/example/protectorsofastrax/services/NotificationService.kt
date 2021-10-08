@@ -9,6 +9,8 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.protectorsofastrax.MyCardsActivity
+import com.example.protectorsofastrax.ProfileActivity
 import com.example.protectorsofastrax.R
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -20,7 +22,7 @@ import com.google.firebase.ktx.Firebase
 class NotificationService : Service() {
     private val channelId = "notification_service"
     private val channelName = "My Notification Service"
-    private lateinit var listener: ValueEventListener;
+    private lateinit var listener: ValueEventListener
     override fun onCreate() {
         super.onCreate()
 
@@ -33,11 +35,6 @@ class NotificationService : Service() {
                 ""
             }
 
-        val pendingIntent: PendingIntent =
-            Intent(this, LocationService::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(this@NotificationService, 0, notificationIntent, 0)
-            }
-
         listener = FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -48,19 +45,25 @@ class NotificationService : Service() {
                     val title = json["title"] as String
                     val text = json["text"] as String
 
+                    val intent = Intent(this@NotificationService, MyCardsActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    intent.putExtra("user_id", Firebase.auth.uid!!)
+                    val pendingIntent: PendingIntent = PendingIntent.getActivity(this@NotificationService, 0, intent, 0)
+
                     var builder = NotificationCompat.Builder(this@NotificationService, channelId)
                         .setSmallIcon(R.drawable.sword_notif_icon)
                         .setColor(Color.WHITE)
-                        .setContentTitle(title)
-                        .setContentText(text)
+                        .setContentTitle("asd is nearby!")
+                        .setContentText("Why not say hi?")
                         .setContentIntent(pendingIntent)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
 
                     with(NotificationManagerCompat.from(this@NotificationService)) {
-                        notify(999899, builder.build())
+                        notify((Math.random() * 99989).toInt(), builder.build())
                     }
 
-                    FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!).removeValue()
+//                    FirebaseDatabase.getInstance().reference.child("notification").child(Firebase.auth.uid!!).removeValue()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
