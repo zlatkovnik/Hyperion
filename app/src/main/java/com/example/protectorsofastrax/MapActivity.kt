@@ -117,7 +117,7 @@ class MapActivity : AppCompatActivity() {
             showFriendsOnly = isChecked
             if (isChecked) {
                 userLocations.forEach { (key, value) ->
-                    value!!.marker?.setVisible(value.isFriend)
+                    value!!.marker?.setVisible(value.isFriend!!)
                 }
             } else {
                 userLocations.forEach { (key, value) ->
@@ -271,8 +271,7 @@ class MapActivity : AppCompatActivity() {
             }
             val locations = snapshot.value as HashMap<String, HashMap<String, Double>>
             locations.forEach { (key, value) ->
-                var user = userLocations[key]
-                if (user == null) {
+                if(userLocations[key] == null || userLocations[key] != null && userLocations[key]!!.isFriend == null){
                     userLocations[key] = UserLocation(
                         key,
                         value["latitude"]!!,
@@ -280,9 +279,11 @@ class MapActivity : AppCompatActivity() {
                         false,
                         null
                     )
-                    user = userLocations[key]
                 }
-                if (user?.marker == null && user!!.isFriend) {
+                userLocations[key]!!.latitude = value["latitude"]!!
+                userLocations[key]!!.longitude = value["longitude"]!!
+                var user = userLocations[key]
+                if (user?.marker == null && user!!.isFriend!!) {
                     FirebaseStorage.getInstance().reference
                         .child("avatars/$key")
                         .downloadUrl
@@ -314,22 +315,87 @@ class MapActivity : AppCompatActivity() {
                                             )
                                         )
                                         marker.icon = d
+                                        map!!.overlays.add(marker)
+                                        user?.marker = marker
+                                        marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+                                            intent =
+                                                Intent(this@MapActivity, ProfileActivity::class.java)
+                                            intent.putExtra("user_id", user?.uid)
+                                            startActivity(intent)
+                                            return@OnMarkerClickListener true
+                                        })
                                     }
 
                                     override fun onLoadCleared(placeholder: Drawable?) {}
                                 });
-                            map!!.overlays.add(marker)
-                            user?.marker = marker
-                            marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
-                                intent =
-                                    Intent(this@MapActivity, ProfileActivity::class.java)
-                                intent.putExtra("user_id", user?.uid)
-                                startActivity(intent)
-                                return@OnMarkerClickListener true
-                            })
+                        }
+                } else if (user!!.isFriend!!) {
+                    map!!.overlays.remove(user.marker!!)
+                    FirebaseStorage.getInstance().reference
+                        .child("avatars/$key")
+                        .downloadUrl
+                        .addOnSuccessListener { url ->
+                            val marker = Marker(map)
+                            marker.position =
+                                GeoPoint(value["latitude"]!!, value["longitude"]!!)
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            val options: RequestOptions = RequestOptions()
+                                .centerCrop()
+                                .placeholder(android.R.mipmap.sym_def_app_icon)
+                                .error(android.R.mipmap.sym_def_app_icon)
+
+                            Glide.with(this@MapActivity)
+                                .asBitmap()
+                                .load(url)
+                                .apply(options)
+                                .into(object : CustomTarget<Bitmap>() {
+                                    override fun onResourceReady(
+                                        bmp: Bitmap,
+                                        transition: Transition<in Bitmap>?
+                                    ) {
+                                        val d: Drawable = BitmapDrawable(
+                                            resources, Bitmap.createScaledBitmap(
+                                                bmp,
+                                                100,
+                                                100 * bmp.height / bmp.width,
+                                                true
+                                            )
+                                        )
+                                        marker.icon = d
+                                        map!!.overlays.add(marker)
+                                        user?.marker = marker
+                                        marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+                                            intent =
+                                                Intent(this@MapActivity, ProfileActivity::class.java)
+                                            intent.putExtra("user_id", user?.uid)
+                                            startActivity(intent)
+                                            return@OnMarkerClickListener true
+                                        })
+                                    }
+
+                                    override fun onLoadCleared(placeholder: Drawable?) {}
+                                });
                         }
                 }
-                if (map != null && user?.marker == null && !user!!.isFriend) {
+                if (map != null && user?.marker == null && !user!!.isFriend!!) {
+                    if (user?.uid != Firebase.auth.uid!!) {
+                        val marker = Marker(map)
+                        marker.position =
+                            GeoPoint(value["latitude"]!!, value["longitude"]!!)
+                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        map!!.overlays.add(marker)
+                        user?.marker = marker
+                        if (showFriendsOnly) {
+                            user!!.marker!!.setVisible(false)
+                        } else {
+                            user!!.marker!!.setVisible(true)
+                        }
+                    }
+                    user?.latitude = value["latitude"]!!
+                    user?.longitude = value["longitude"]!!
+                    user?.marker?.position = GeoPoint(user!!.latitude, user!!.longitude)
+                } else if(!user!!.isFriend!!) {
+                    map!!.overlays.remove(user.marker)
                     if (user?.uid != Firebase.auth.uid!!) {
                         val marker = Marker(map)
                         marker.position =
@@ -376,39 +442,36 @@ class MapActivity : AppCompatActivity() {
                         null
                     )
                 }
+                battleLocations[key]!!.latitude = value["latitude"] as Double
+                battleLocations[key]!!.longitude = value["longitude"] as Double
                 val location = battleLocations[key]
-                if (location?.marker == null) {
-                    val marker = Marker(map)
-                    marker.icon = getDrawable(R.drawable.sword_notif_icon)
-                    marker.position = GeoPoint(location!!.latitude, location!!.longitude)
-                    marker.setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_LEFT)
-                    map!!.overlays.add(marker)
-                    location!!.marker = marker
-                    marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
-                        if(cachedLocation == null){
-                            return@OnMarkerClickListener true
-                        }
-                        val myLocation =
-                            LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
-                        val battleLocation = LatLng(location.latitude, location.longitude)
-                        val distance =
-                            SphericalUtil.computeDistanceBetween(myLocation, battleLocation)
-                        if(distance > 500.0){
-                            return@OnMarkerClickListener true
-                        }
-                        intent = Intent(this@MapActivity, BattleActivity::class.java)
-                        intent.putExtra("battle_id", location.uid)
-                        intent.putExtra("enemyID", location.enemyId)
-                        startActivity(intent)
-                        return@OnMarkerClickListener true
-                    })
-                } else {
-                    val marker = Marker(map)
-                    marker.position = GeoPoint(location.latitude!!, location.longitude!!)
-                    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                    map!!.overlays.add(marker)
-                    location.marker = marker
+                if (location?.marker != null) {
+                    map!!.overlays.remove(location.marker)
                 }
+                val marker = Marker(map)
+                marker.icon = getDrawable(R.drawable.sword_notif_icon)
+                marker.position = GeoPoint(location!!.latitude, location!!.longitude)
+                marker.setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_LEFT)
+                map!!.overlays.add(marker)
+                location!!.marker = marker
+                marker.setOnMarkerClickListener(Marker.OnMarkerClickListener { _marker, mapView ->
+                    if (cachedLocation == null) {
+                        return@OnMarkerClickListener true
+                    }
+                    val myLocation =
+                        LatLng(cachedLocation!!.latitude, cachedLocation!!.longitude)
+                    val battleLocation = LatLng(location.latitude, location.longitude)
+                    val distance =
+                        SphericalUtil.computeDistanceBetween(myLocation, battleLocation)
+                    if (distance > 500.0) {
+                        return@OnMarkerClickListener true
+                    }
+                    intent = Intent(this@MapActivity, BattleActivity::class.java)
+                    intent.putExtra("battle_id", location.uid)
+                    intent.putExtra("enemyID", location.enemyId)
+                    startActivity(intent)
+                    return@OnMarkerClickListener true
+                })
                 location?.marker!!.position =
                     GeoPoint(location!!.latitude, location!!.longitude)
                 if (!showBattles) {
@@ -432,14 +495,18 @@ class MapActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         map!!.onPause()
-        FirebaseDatabase.getInstance().reference.child("battles").removeEventListener(battleLocationListener!!)
-        FirebaseDatabase.getInstance().reference.child("users").removeEventListener(usersLocationListener!!)
+        FirebaseDatabase.getInstance().reference.child("battles")
+            .removeEventListener(battleLocationListener!!)
+        FirebaseDatabase.getInstance().reference.child("users")
+            .removeEventListener(usersLocationListener!!)
     }
 
     override fun onStop() {
         super.onStop()
-            FirebaseDatabase.getInstance().reference.child("battles").removeEventListener(battleLocationListener!!)
-            FirebaseDatabase.getInstance().reference.child("users").removeEventListener(usersLocationListener!!)
+        FirebaseDatabase.getInstance().reference.child("battles")
+            .removeEventListener(battleLocationListener!!)
+        FirebaseDatabase.getInstance().reference.child("users")
+            .removeEventListener(usersLocationListener!!)
         if (locationManager != null)
             locationManager!!.removeUpdates(locationListener)
     }
