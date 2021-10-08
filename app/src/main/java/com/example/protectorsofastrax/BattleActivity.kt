@@ -339,6 +339,7 @@ class BattleActivity : AppCompatActivity() {
             cachedBattleLocation?.userCardMap?.forEach { b ->
                 FirebaseDatabase.getInstance().reference.child("notification").child(b.key)
                     .setValue(message)
+                FirebaseDatabase.getInstance().reference.child("battles").child(battleId).removeValue()
                 finish()
             }
 
