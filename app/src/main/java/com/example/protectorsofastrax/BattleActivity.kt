@@ -306,6 +306,7 @@ class BattleActivity : AppCompatActivity() {
                     .addOnSuccessListener { snapshot ->
                         var user = snapshot.toObject(User::class.java)
                         user!!.experience += (50.0 * Math.random()).toLong()
+                        user!!.battlesWon += 1
                         FirebaseFirestore.getInstance().collection("cards").get()
                             .addOnSuccessListener { cardsSnapshot ->
                                 val allCardIds = cardsSnapshot.map { ss -> ss.id }
